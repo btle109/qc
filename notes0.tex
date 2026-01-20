@@ -1,0 +1,228 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+
+\title{Quantum Computation Notes \\ \large Axioms, states, ensembles}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-2cm}
+\tableofcontents
+
+The following is the first in a collection of notes I have taken from Preskill's Phs219/CS219 course at Caltech, Kaye, Laflamme, and Mosca's \textit{An Introduction to Quantum Computing}, and Nielsen and Chuang's \textit{Quantum Computation and Quantum Information}. This corresponds to Lectures 2,3 and Ch2 of Phys219/CS219 as well as necessary sections of Nielsen/Mosca.
+
+\section{Postulates for closed quantum systems}
+\textbf{Postulate 1:} A state is ray (unit length vector) in a Hilbert space (complex complete inner product space). A qubit is a 2 dimensional vector state. 
+$$ \ket{\psi} \in \boldsymbol{H}, \bra{\phi}\ket{\psi}= \braket{\psi|\phi}^* \in \mathbb{C}, 1 = |\psi|$$
+$$ \ket{\psi} \equiv \alpha \ket{\psi} \text{ but } \alpha \ket{\phi} + \beta \ket{\psi} \not \equiv \alpha  \ket{\phi} + \lambda \ket{\psi}$$ for $\beta \neq \lambda$. \\
+\textbf{Postulate 2}: An observable is a property of a system (of which states are elements of) that can be measured (e.g. spin). Observables are self-adjoint/Hermitian operators. Any observable $A$ can be expressed as $A = \sum_n a_n E_n$, where $a_n$ is an eigenvalue of $A$ and $E_n$ is the corresponding orthogonal projection onto space of eigenvectors (spectral decomposition).\\
+\textbf{Postulate 3:} Measuring an observable of a state yields information about the state and also changes it. For example, measuring using the observables of the Pauli gates can be interpreted as measuring along axes (rotation, projection along basis, verify). Measuring observable $A$ of state $\ket{\psi}$ causes $\ket{\psi}$ to collapse to eigenstate $E_i$ with probability $a_i^2$ (Born rule).\\
+$$P(a_n) = ||E_n\ket{\psi}||^2 = \braket{\psi | E_n| \psi}$$. 
+$$\ket{\psi}' = \frac{E_i \ket{\psi}}{||E_n | \ket{\psi}||}$$
+We then can define expectation/expected value (for projective measurement, see notes1).
+$$\braket{A} = \sum_i P(a_i)a_i = \sum_i a_i \braket{\psi|E_i|\psi} = \braket{\psi|A|\psi}$$
+\begin{tcolorbox} \textbf{Example:}
+	Consider $\ket{\psi} = \alpha \ket{0} + \beta \ket{1}$. Measure in the Pauli-Y basis. (This can also be interpreted as applying Pauli Y logic gate, see Mosca example 3.4.1) 
+	Pauli Y = $\left[ \begin{array}{cc}
+	0 & -i \\
+	i & 0
+\end{array} \right]$ has eigenvalues $1,-1$ with corresponding eigenvectors $E_1, E_2: [\frac{1}{\sqrt{2}},\frac{i}{\sqrt{2}}],[\frac{1}{\sqrt2}, \frac{-i}{\sqrt{2}}].$ \\
+$P(1) = |E_1 \ket{\psi}|^2 = \frac{1}{2} |\alpha + i\beta|^2, P(-1) = |E_2 \ket{\psi}|^2 = \frac{1}{2}|\alpha - i\beta|^2$
+\end{tcolorbox}
+\textbf{Postulate 4:} Time evolution is determined by the Schrodinger equation.\\
+\begin{tcolorbox}\textbf{Example:}
+	See exercise 1.
+\end{tcolorbox}
+\textbf{Postulate 5}: If Hilbert space of system $A$ is $\boldsymbol{H}_A$ and Hilbert space of system $B$ is $\boldsymbol{H}_B$, then the Hilbert space of composite systems $AB$ is tensor product $\boldsymbol{H}_A \otimes \boldsymbol{H}_B$
+The basis of $\boldsymbol{H}_AB$ are given by the tensor product of the basis. The state of system $H_{AB}$ is given by $\ket{\psi_A} \otimes \ket{\psi_B}$.
+The tensor product operator $M_A \otimes N_B$ is the operator that applies $M_A$ to the first qubit/system A and $N_B$ to the second qubit/system $B$. Do not confuse tensor product (combining two kets/spaces) with outer product, $\ket{\psi} \otimes \bra{\phi} = \ket{\psi}\bra{\psi}$.
+\begin{tcolorbox}\textbf{Example:}
+	$$\ket{1}\bra{1} = \left[\begin{array}{cc}
+			0 & 0 \\
+			0 & 1\\
+	\end{array}\right]$$
+	$$\ket{1}\otimes\ket{1} = \left[\begin{array}{c} 0 \\ 0 \\ 0 \\ 1\end{array}\right]$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Example}:
+	Suppose we have two qubit system that is in state $\ket{\psi_A} \otimes \ket{\psi_B}$. We want to construct an operator that performs the NOT operation on the first qubit and leaves the second bit alone. Thus we have operation $ NOT_A \otimes I_B = \left[\begin{array}{cc}
+	    0 & 1 \\
+    1 & 0\end{array}\right] \otimes \left[\begin{array}{cc} 1 & 0 \\ 0 & 1 \end{array}\right] = \left[\begin{array}{cccc} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 &0 \\ 0 & 1 & 0 & 0 \end{array}\right]$.\\
+    Applying the transformation to $\ket{00} = [1,0] \otimes [1,0] = [1,0,0,0]$ yields $[0,0,1,0] = [0,1]\otimes[1,0] = \ket{10}$, flipping the first qubit and leaving the second qubit unchanged as expected.
+\end{tcolorbox}
+\section{Density Operator, Introduction}
+Suppose we have state $\ket{\psi}_{AB}$ in some composite system $AB$ where we can interact with qubit $A$ but not with $B$.
+$$\ket{\psi}_{AB} = a\ket{0} \otimes \ket{0}_B + b\ket{1}_A \otimes \ket{1}_B = a\ket{00} + b\ket{11}$$
+Then, suppose we have operator $M_A \otimes I_B$, which acts on qubit A and not on B (see fifth postulate on composite systems).
+Then, the expectation of $M_A \otimes I_B$ is $\braket{M_A\otimes I_B}$
+$$ = \braket {\psi|M_A \otimes I_B|\psi} = \bra{\psi}\ket{a(M_A\ket{0}\otimes I_B\ket{0})+b(M_A\ket{1}\otimes I_B\ket{1})}$$
+$$ = (a^*\bra{00}+b^*\bra{11})(\ket{a(M_A\ket{0}\otimes I_B\ket{0})+b(M_A\ket{1}\otimes I_B\ket{1})})$$
+$$= |a|^2 \bra{0}M_A\ket{0} \otimes \braket{0|0} + ab^*\bra1 M_A\ket{0} \otimes \braket{1|0} + a^*b \braket{0|M_A|1} \otimes \braket{0|1} + |b|^2 \braket{1|M_A|1}\otimes \braket{1|1}$$
+Since $\ket{0}, \ket{1}$ are orthogonal rays,
+$$ = |a|^2 \braket{0|M_A|0} + |b|^2 \braket{1|M_A|1}$$
+Define $\rho_A  = |a|^2 \ket{0}\bra{0} + |b|^2 \ket{1}\bra{1}.$ $\rho_A$ is the density operator\\
+Then, we show $\braket{A} = Tr(M_A\rho_A)$\\
+We use the property that $Tr(A\ket{\psi}\bra{\psi})=\braket{\psi | A | \psi}$
+$$Tr(M_a\rho_A) = Tr (|a|^2M_A\ket{0}\bra{0} + |b|^2 M_A\ket{1}\bra{1})$$
+By linearity of trace, we have:
+$$=|a|^2 Tr(M_a\ket{0}\bra{0}) + |b|^2 Tr(M_a\ket{1}\bra{1})$$
+$$=|a|^2 \braket{0|M_A|0} + |b|^2 \braket{1|M_A|1} = \braket{A}$$
+as desired.\\
+
+\begin{tcolorbox}\textbf{Example:}
+	Define $\ket{\psi}_AB = a \ket{00}+b\ket{11}$. Calculate expectation for measuring Pauli Z axis on the first qubit and leaving the second bit alone ($A = \sigma_z \otimes I_b$).
+	$$\sigma_z = \ket{0}\bra{0} - \ket{1}\bra{1}, \rho_A = |a|^2\ket{0}\bra{0} + |b|^2\ket{1}\bra{1}$$
+	$$\braket{A} = Tr(\sigma_z\rho_A) = Tr((\ket{0}\bra{0}-\ket{1}\bra{1})(|a|^2\ket{0}\bra{0}-|b|^2\ket{1}\bra{1}))$$
+	Using  orthogonality of $\ket{0}, \ket{1}$:
+	$$ = Tr(|a|^2\ket{0}\bra{0} - |b|^2 \ket{1}\bra{1})$$
+Using linearity of trace:
+$$=|a|^2 Tr(I\ket{0}\bra{0})  - |b|^2 Tr(I\ket{1}\bra{1})$$
+Using familar trace property:
+$$ = |a|^2\braket{0|I|0} - |b|^2\braket{1|I|1} = |a|^2-|b|^2$$
+\end{tcolorbox}
+\section{Density Operator, Properties}
+We generalize the density operator to any arbitrary pure state of $\boldsymbol{H}_A \otimes \boldsymbol{H}_B$, where $\ket{\psi}_{AB} = \sum_{i,\mu} a_{i, \mu} \ket{i}_A \otimes \ket{\mu}_B, \sum_{i, \mu} |a_{i, \mu}|^2 = 1$
+Then, for a general Hermitian operator measured by $A =  M_A \otimes I_B$:
+$$ \braket{A} = \braket{\psi|M_A \otimes I_B | \psi} = \braket{\psi| M_A \otimes I_B | \sum_{i, \mu} a_{i, \mu} \ket{I}_A \otimes \ket{\mu}_B} = \braket{\psi | \sum_{i, \mu} a_{i,\mu} M_A \ket{i}_A \otimes \ket{\mu}_B}$$
+$$ = \sum_{i,j,\mu,v} a_{i, \mu}a^*_{j,v} \braket{j|M_A|i}\otimes \braket{v|\mu} $$
+Since $v, \mu$ are orthonormal states, we can simplify using Kronecker delta, $\braket{v|u} =  \delta_{vu}$.
+$$ \sum_{j,v, \mu} a^*_{jv} \delta_{v\mu} = \sum_{j,\mu} a^*_{j,\mu}$$
+$$\implies \sum_{i,j,\mu,v} a_{i,\mu} a^*_{j,v} \braket{j|M_A|i}\otimes \braket{v|\mu} = \sum_{i,j,\mu} a_{i,\mu}a^*_{j, \mu} \braket{j|M_A|i} $$
+Define $\rho_A  = \sum_{i,j,\mu} a_{i\mu} a^*_{j\mu} \ket{i}\bra{j}$. Using familiar trace property, we see that $tr(M_A\rho_A) = \braket{A}$ as desired. $\rho_A$ can also be defined as the partial trace over $B$ for $\ket{\psi}\bra{\psi}$. The partial trace over a tensor product can be defined as $tr_B(A \otimes B) = A tr_B(B)$, which then implies $ \rho_A = tr_B(\ket{\psi}\bra{\psi})$ (reduced density operator). The partial trace allows us to "trace out" parts of a density operator. For instance, $\rho_A = tr_B(\rho_{AB}) = \sum_b \braket{b|\rho_{AB}|b}$, where $b$ are basis states of system $B$. 
+\\For a pure state $\ket{\psi}, \rho_A = \ket{\psi}\bra{\psi}$, since there is one state that must occur.\newpage
+The density operator has the following properties:\\
+\textbf{Prop 1:} The density operator is Hermitian. $\rho = \rho^\dag$\\
+\textbf{Prop 2:} The density operator is non-negative (PSD or PD) $\braket{\phi | \rho | \phi} \geq 0$\\
+\textbf{Prop 3:} $tr(\rho) = 1$.\\
+Prop 1, 3 $\implies$ eigenvalues are nonegative and sum to 1
+$\implies $ \textbf{we can find orthonormal basis s.t. $\rho = \sum_a p_a \ket{a}\bra{a}, p_i \geq 0, \sum_a p_a = 1$} $\equiv \rho_A = tr_B(\ket{\psi}\bra{\psi}) \iff tr(M_a\rho) =\braket{A}$.\\
+In summary: we need the density operator as a way to show all the possiblities and their probabilities of a state in an open system/mixed state.
+In more formal terms: in the ensemble interpretation, the eigenvalue is the probability that the corresponding basis state has been prepared in system A. If there is one nonzero eigenvalue, $A$ is pure. Otherwise, it is mixed.\\
+We can interpret the density operator as a probabalistic ensemble in which specific pure quantum states $\ket{a}$ in a mixed state of A occur with specified probabilities $\lambda_a$. The density operator allows us to gain a complete description of system A even in an open system that has A in it. 
+
+\begin{tcolorbox}\textbf{Example:}
+	Calculate $\rho_A$ for state: $\ket{\psi}_{AB} = \frac{1}{\sqrt2}(\ket{00}_{AB} + \ket{11}_{AB})$.
+	$$\rho_A = tr_B(\rho_{AB}) = tr_B(\ket{\psi}\bra{\psi})$$
+	$$\rho_{AB} = \frac12(\ket{00}\bra{00} + \ket{00}\bra{11}+ \ket{11}\bra{00} + \ket{11}\bra{11})$$
+	By linearity of trace, definition of partial trace ($tr_B = A tr(B)$) familiar trace property, $$tr_B(\rho_{AB}) = \frac12(tr_B(\ket{00}\bra{00})+....+tr_B(\ket{11}\bra{11}))$$
+	$$ = \frac12(\ket{0}\bra{0}tr(\ket{0}\bra{0})+....) = \frac12(\ket{0}\bra{0}\braket{0|0}+..)$$
+	$$=\frac12 (\ket{0}\bra{0}\braket{0|0} + \ket{0}\bra{1}\braket{0|1} + \ket{1}\bra{0}\braket{1|0}+ \ket{1}\bra{1}\braket{1|1})$$
+	By orthonormality of $\ket{0}, \ket{1}$:
+	$$ = \frac12 (\ket{0}\bra{0} + \ket{1}\bra{1}) = \frac12 I$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Summary of density operator and expected value:}
+	Recall that for a pure state the expected value of observable $A$ is:
+	$$\braket{A} = \braket{\psi|A|\psi} = tr(\ket{\psi}\bra{\psi}A)$$.
+	Generalizing for open system, for instance with $\ket{\psi_1}...\ket{\psi_n}$ with corresponding probabilities $p_1....p_n,$ the average expected value is the weighted sum of individual expected values:
+	$$\braket{A} = \sum_i p_i \braket{\psi_i|A|\psi_i} = tr((\sum_i p_i \ket{\psi_i}\bra{\psi_i})A) = tr(A\rho)$$
+	where $\rho = \sum_i p_i \ket{\psi}\bra{\psi_i}$.
+\end{tcolorbox}
+\section{Schmidt decomposition of a bipartite pure state}
+The Schmidt decomposition is a standard form for a bipartite pure state.
+The Schmidt decomposition theorem is as follows: If $\ket\psi$ is a vector in composite space $\boldsymbol{H}_A \otimes \boldsymbol{H}_B$ then there exists orthonormal basis $\{ \ket{i}_A\}$ for $\boldsymbol{H}_A$ and an orthonormal basis $\{i'\}_B$ for $\boldsymbol{H}_B$ and non-negative real numbers $p_i$ (Schmidt coefficients) s.t. $$\ket{\psi}_{AB} = \sum_i \sqrt{p_i} \ket{i}_A \otimes \ket{i'}_B$$
+Consider generic form $\ket{\psi}_{AB} = \sum_{a\mu}  \psi_{a\mu}\ket{a}_A \otimes \ket{\mu}_B$.
+First, we define $\ket{\j}_B = \sum_\mu \psi_{a\mu} \ket{\mu}_B $.
+Then, we define $\ket{i'}_B = p_i^{-\frac12}\ket{j}$. See textbook for rigorous derivation of Schmidt decomposition. The number of nonzero eigenvalues in $\rho_A, \rho_B$ and thus the number of terms in the Schmidt decomposition of $\ket{\psi}_{AB}$ is the Schmidt number or Schmidt rank. If this number is greater than one, it is an entangled state.
+ Again consider the generic form. We find that $\psi_{a\mu} = \sum_i U_{ji} \sqrt{p_i}(V^\dag)_{ik}$
+The Schmidt decomposition is calculated using SVD of $\ket{\psi}$ into $U\Sigma V^\dag$, where $\Sigma$ is the matrix of singular values on the diagonal from eigenvalues of $\psi\psi^\dag$, $V^\dag$ is the conjugate transpose of the matrix of eigenvectors of $\psi^T\psi$, and $U$ is the same for $\psi\psi^\dag$.
+\begin{tcolorbox}\textbf{Example:}
+	Compute Schmidt decomposition of $\ket{\psi}_{AB} = \frac{\ket{00} + i\ket{01}}{\sqrt2} $
+	\\Matrix $\psi = \left[ \begin{array}{cc}\frac{1}{\sqrt2} & \frac{i}{\sqrt2} \\ 0 & 0 \end{array} \right]  \implies \psi\psi^\dag = \left[\begin{array}{cc} 1 & 0 \\ 0 & 0 \end{array}\right] \implies \sigma_1 = 1, \sigma_2 = 0.$
+	Then we compute eigenvectors of $\psi^\dag\psi = \left[\begin{array}{cc} \frac12 & \frac{i}{2} \\ \frac{-i}{2} & \frac12 \end{array}\right], v_j = \frac{1}{\sqrt2}[1, (-1)^j i], j=0,1 \implies v_1 =\frac{\ket{0} + i\ket{1}}{\sqrt2} $
+\\	To compute matrix $U$, we can repeat this process for $\psi\psi^\dag$ or use the fact that $\psi v_i = \sigma_i u_i$.
+	$\implies u_1 = [1,0] \ \implies u_2 = [0,1]$ since $u_i$ need to be orthonormal.
+	$$\implies U = I \text{. Then, using SVD }\ket{\psi} = \sum_i \sigma_i\ket{u_i}\ket{v_i}$$
+	$$ \implies \ket{\psi} = 1\ket{u_1}\ket{v_1} = 1(\ket{0} \otimes \frac{1}{\sqrt2}(\ket{0} + i\ket{1}))$$
+	$$= \frac{\ket{0} \otimes i\ket{1}}{\sqrt2}$$
+	It is easy to verify using matrix representation and matrix multiplication.
+\end{tcolorbox}
+(clean this up!)
+\section{HJW Theorem}
+An application of Schmidt decomposition is purification. Consider density matrix $\rho_A = \sum_i \ket{\phi_i}\bra{\phi_i}, \sum p_i = 1$, where $\phi$ not necessarily orthogonal (but normal). We construct a purification, a bipartite state $\ket{\Phi}_{AB}$ such that $\rho_A = tr_B(\ket{\Phi}_{AB})$. Consider valid purification $\ket{\Phi_1} = \sum_i \sqrt{p_i} \ket{\phi_i}_A \otimes \ket{\alpha_i}_B$, where $\alpha$ are orthonormal. Clearly, $tr_B(\ket{\Phi}\bra{\Phi}) = \rho_A$. Consider a different set of vectors for the density operator of A, $\rho_A = \sum_\mu q_\mu \ket{\psi_\mu}\bra{\psi_\mu}$
+Then, this $\rho_A$ has corresponding purification $\ket{\Phi_2} = \sum_\mu \sqrt{q_\mu} \ket{\psi_\mu} \otimes \ket{\beta_\mu}$. The HJW theorem states that the two purifications only differ by a change in basis.
+$$\ket{\Phi_1} = \sum_{\mu} \sqrt{q_\mu} \ket{\psi_\mu}_A \otimes \ket{\gamma_\mu}_B$$
+where 
+$$\ket{\gamma_\mu} = U_B \ket{\beta_\mu}$$.
+This follows directly from Schmidt decompositions of both $\ket{\Phi_1}$ and $\ket{\Phi_2}$. Consider Schmidt decompositions of the two purifications. Since they both yield the same $\rho_A$ when the partial trace of B is taken, then
+$$ \ket{\Phi_1} = \sum_k \sqrt{\lambda_k} \ket{k}_A \otimes \ket{k'_1}$$
+$$\ket{\Phi_2} = \sum_k \sqrt{\lambda_k} \ket{k}_A \otimes \ket{k'_2}$$
+Since the sets of $k'$ are orthonormal bases of $H_B$ there exists unitary transformation that maps $\ket{k'_1}_B = U_B\ket{k'_2}_B$ (check LADR!) from which HJW follows.
+
+\section{The Bloch Sphere}
+Consider again a single qubit, $\ket{\psi} = \alpha\ket0 + \beta\ket1, |\alpha|^2 + |\beta|^2 = 1$.
+We can represent this using Hopf coordinates:
+$$ \ket{\psi} = e^{i\gamma} (cos(\frac{\theta}{2})\ket0 + e^{{i}{\phi}} sin(\frac{\theta}{2})\ket1) \equiv cos(\frac{\theta}{2})\ket0 + e^{{i}{\phi}} sin(\frac{\theta}{2}\ket1), \theta \in [0, \pi], \phi \in [0, 2\pi]$$ (see postulate 1 for why we can ignore global phase)
+This is a sphere with the axes of the Bloch sphere are Pauli X,Y,Z eigenvectors and thus we can measure one of the Pauli axes by performing a measurement using a Pauli operator. See exericse 3 for Pauli matrix eigenvectors! The points of pure state are on the surface of the sphere, mixed state inside.
+\begin{tcolorbox}\textbf{Example:}
+	We want to show that the Pauli X axis, corresponding to eigenstate $\ket{\psi}_{x+} = \frac{1}{\sqrt2}(\ket0 + \ket1)$ is on the x-axis. 
+	$$\ket{\psi}_{x+} = \frac{1}{\sqrt2}(\ket0 + \ket1) \implies \alpha = \beta = frac{1}{\sqrt2} $$
+	$$\iff \alpha = cos(\frac{\theta}{2}), \beta = e^{i\phi} sin(\frac{\theta}{2})$$
+	$$\implies \theta = \frac{\pi}{2}, \implies \phi = 0$$
+	which corresponds to the x-axis.
+\end{tcolorbox}
+The density matrix of a single qubit can be expressed in terms of the Pauli basis/Pauli matrices. Since each $\sigma_i$ is traceless and since the trace of the density operator is 1 (Prop 3), we mutiply the coefficient of $I$ by 1.
+thus we have:
+$$\rho(P) = \frac12(I+P_1\sigma_1 + P_2\sigma_2 + P_3\sigma_3)$$
+$$ = \frac12 \left[ \begin{array}{cc}1+P_3 & P_1 - iP_2 \\ P_1 + iP_2 & 1-P_3\end{array}\right]$$.
+Since $det\rho = 1 - P^2$, for the density operator to be PSD or PD, $P\leq1$ (since product of diagonals is product of eigenvalues which must be nonnegative).$P$ is our Bloch vector.
+\section{Convexity of the set of density matrices}
+The set of all density matrices is convex. Thus, for density operators $\rho_1, \rho_2$
+$$\rho(\lambda) = \lambda\rho_1 + (1-\lambda)\rho_2 $$
+is also a valid density operator (see 3 properties of density operators, not difficult to verify). This has an immediate application: suppose we have state $\rho_1$ prepared with probability $\lambda$ and state $\rho_2$ prepared with probability $1-\lambda$. To evaluate this expression over any observable $M$ we take the expected value over convex combination.
+The preparation of a pure state is always unambigious but the preparation of a mixed state is always ambiguous. For instance, consider the maximally mixed state qubit $\rho = \frac12 I $, which can be prepared in a variety of ways.
+Consider $\rho = \frac12 \ket{up_z}\bra{up_z} + \frac12 \ket{down_z}\bra{down_z} $ and  $\rho = \frac12 \ket{up_x}\bra{up_x} + \frac12 \ket{down_x}\bra{down_x}$. We obtain $\rho$ if we prepare either with probability $\frac12$ but there is no way to tell from making measurements. More generally, the point at the center of the Bloch ball is the sum of
+any two antipodal points on the sphere
+
+\section{Exercises}
+\begin{enumerate}
+	\item (Mosca 3.2.1) Show $\ket{ \psi (t_2)} = e^{\frac{-iH(t_2-t_1)}{\hbar}}\ket{\psi (t_1)}$ is a solution to time independent Schrodinger equation $i\hbar \frac{d \ket{\psi(t)}}{dt} = H(t) \ket{\psi(t)}$
+\begin{tcolorbox}\textbf{Solution:}
+	Let $t_1=0, t_2=t$. Then, $\ket{\psi(t)}= e^{\frac{-iH(t)}{\hbar}} \ket{\psi(0)}$
+	$$\implies \frac{d}{dt}\ket{\psi(t)} = \frac{-iH(t)}{\hbar}e^{\frac{-iH(t)}{\hbar}}\ket{\psi(0)}.$$
+$$\implies i\hbar \frac{d}{dt} \ket{\psi(t)} = H(t) e^{\frac{-iH(t)}{\hbar}}\ket{\psi(0)} = H(t)\ket{\psi(t)}$$
+
+\end{tcolorbox}
+
+	\item (Mosca 3.3.1) (Nielsen 2.68) Show the state $\ket{\psi} = \frac{1}{\sqrt{2}}\ket{00} + \frac{1}{\sqrt2}\ket{11}$ is entangled.
+		\begin{tcolorbox}\textbf{Solution:}
+		We show the state is entangled by showing that there is no possible $a_0,a_1,b_0,b_1$ such that $\ket{\psi} = (a_0\ket{0} + a_1\ket{1})(b_0\ket{0}+b_1\ket{1})$
+		Suppose we can find valid $a_0,a_1,b_0,b_1$.\\
+		Then, $\frac{1}{\sqrt2}\ket{00} + 1\sqrt{2}\ket{11} = a_0b_0\ket{00} + a_0b_1 \ket{01} + a_1b_0\ket{10} + a_1b_1 \ket{11}$
+		Since $\ket{00},...,\ket{11}$ form a basis for $H^{\otimes2}$, this writing for $\ket{\psi}$ is unique $\iff \frac{1}{\sqrt{2}} = a_0b_0 = a_1b_1$ and $a_0b_1 = a_1b_0 = 0$.
+		Then, we see that:
+		$$a_0b_0 \times a_1b_1 = a_0 a_1 b_0 b_1=\frac12 \neq a_0b_1 \times a_1b_0 = 0$$
+		Therefore there are no valid $a_0,a_1,b_0,b_1$.
+\end{tcolorbox}
+	\item (Nielsen 2.11) Find eigenvectors, eigenvalues, and diagonal representations of Pauli X,Y,Z.
+\begin{tcolorbox}\textbf{Solution:}
+	The eigenvalues of all Pauli matrices are $1,-1$.
+	The eigenvectors are as follows:
+	$$ \ket{\psi}_{x+} = \frac{1}{\sqrt2}(\ket0 + \ket1), \ket{\psi}_{x-}=\frac{1}{\sqrt2}(\ket0 - \ket1)$$
+	$$\ket{\psi}_{y+} = \frac{1}{\sqrt2}(\ket0 + i\ket1), \ket{\psi}_{y-} = \frac{1}{\sqrt2}(\ket0 -i\ket1)$$
+	$$\ket{\psi}_{z+} = \ket0, \ket{\psi}_{z-} = \ket{1}$$
+	A diagonal representation is defined as $A = \sum_i \lambda_i \bra{i}\ket{i}$ where the vectors $i$ form an orthonormal set of eigenvectors. Thus, the diagonal representations of any Pauli matrix is:
+	$$\sigma = \ket{\psi}_{+}\bra{\psi}_{+} - \ket{\psi}_{-}\bra{\psi}_{-}$$
+\end{tcolorbox}
+
+	\item (Nielsen 2.16) Show that any projector $P$ satisfies $P^2 = P$
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose $W$ is a $k$-dimensional vector subspace of $d$-dimensional vector space $V$.
+	$$ P = \sum_{i=1}^k \ket{i}\bra{i}$$ is the projector onto subspace $W$, where vectors $i$ are orthonormal basis for W.
+	Then, $P^2 = \sum_i \ket{i}\bra{i} \sum_j \ket{j}\bra{j} = \sum_{i,j} \ket{i}\braket{i|j}\bra{j}$
+	$$ = \sum_{i,j} \ket{i} \delta_{ij} \bra{j} = \sum_i \ket{i}\bra{i}$$ as desired.
+\end{tcolorbox}
+	\item (Nielsen 2.66) Show that the average value of observable $X_1Z_2$ measured in the state $\frac{1}{\sqrt2}(\ket{00} + \ket{11})$ is zero.
+		\begin{tcolorbox}\textbf{Solution}: Convert to matrix form. $\braket{\psi|X_1Z_2|\psi} = 0$, simple matrix multiplication.
+
+\end{tcolorbox}
+	\item (Nielsen 2.74)
+	\item (Nielsen 2.79)
+\end{enumerate}
+
+\end{document}

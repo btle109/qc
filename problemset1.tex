@@ -1,0 +1,202 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+
+\title{Problem set 1}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1cm}
+\tableofcontents
+\section{How far apart are two quantum states?}
+Consider two quantum states described by density operators $\rho$ and $\tilde{\rho}$ in an N-dimensional Hilbert space, and consider the complete orthogonal measurement $\{E_a, a = 1, 2, 3, ... N \}$, where the $E_a$’s are one-dimensional projectors satisfying
+\begin{equation}
+\sum_{a=1}^N E_a = I\tag{1}
+\end{equation}
+When the measurement is performed, outcome $a$ occurs with probability $p_a = tr(\rho E_a)$ if the state is $\rho$ and with probability $\tilde{p}_a = tr(\tilde{\rho} E_a)$ if the state is $\tilde{\rho}$.\\
+The $L^1$ \textit{distance} between two probability distributions is defined as
+\begin{equation}
+	d(p,\tilde{p}) \equiv ||p-\tilde{p}||_1 \equiv \frac12 \sum_{a=1}^N |p_a - \tilde{p}_a|; \tag{2}
+\end{equation}
+this distance is zero if the two distributions are identical, and attains its maximum value one if the two distributions have support on disjoint sets.
+
+\begin{enumerate}[label=(\alph*)]
+	\item Show that \begin{equation} d(p,\tilde{p}) \leq \frac12 \sum_{i=1}^N |\lambda_i| \tag{3}\end{equation} where the $\lambda_i$'s are the eigenvalues of the Hermitian operator $\rho-\tilde{\rho}$
+		\begin{tcolorbox}\textbf{Solution:}
+	\begin{proof}
+	Define $\Delta = \rho - \tilde{\rho}$. Then, $p_a - \tilde{p}_a = tr((\rho-\tilde{\rho}) (E_a)) = tr(E_a \Delta)$ by linearity of trace.
+	\begin{align}
+		\implies d(p,\tilde{p}) = \frac12 \sum_{a=1}^{N} |tr(E_a \Delta)| \\
+		\intertext{Since $\Delta$ is Hermitian, we can diagonalize $\Delta = \sum_{i=1}^N \lambda_i\ket{i}\bra{i}$.}
+		= \frac12 \sum_{a=1}^N |tr(E_a \sum_{i=1}^N \lambda \ket{i}\bra{i})| = \frac12 \sum_{a=1}^N |\sum_{i=1}^N \lambda_i tr(E_a\ket{i}\bra{i})| \\
+		= \sum_{a=1}^N |\sum_{i=1}^N \lambda_i \braket{i|E_a|i}| \leq  \frac12 \sum_{i=1}^N \sum_{a=1}^N |\lambda_i \braket{i|E_a|i}| 
+		\intertext{Since $E_a$ is positive, $\braket{i|E_a|i} > 0$, therefore}
+		= \frac12 \sum^N_{i=1}\sum_{a=1}^N |\lambda_i| \braket{i|E_a|i} = \frac12 \sum^N_{i=1} |\lambda_i| \braket{i|\sum_{a=1}^N E_a|i}
+	\intertext{Using the completeness property, $\sum_{a=1}^N E_a = I$, therefore}
+	= \frac12 \sum_{i=1}^N |\lambda_i| \braket{i|I|i} = \frac12 \sum_{i=1}^N |\lambda_i|  
+	\end{align}
+	as desired.
+\end{proof}
+\end{tcolorbox}
+\newpage
+\item Find a choice for the orthogonal projector $\{E_a\}$ that saturates the upper bound eq. (3).
+\begin{tcolorbox}\textbf{Solution:}
+	For scalars $\lambda_i, |\sum_i \lambda_i| = \sum_i |\lambda_i| \iff $ all $\lambda_i$ are the same sign.
+	Then, construct operators $E_+$ and $E_-$ that project onto the eigenspaces corresponding to positive/negative eigenvalues of $\rho - \tilde{\rho}$. We see that $E_+ + E_- = I$, since $\rho - \tilde{\rho}$ is positive and thus has no zero eigenvalues. 
+	Then, $$d(p,\tilde{p}) = \frac12 \sum_a^N|\sum_i^N \lambda_i \braket{i|E_a|i}| $$
+	$$= \frac12 (|\sum_i^N \lambda_i \braket{i|E_+|i}| + |\sum_i^N \lambda_i \braket{i|E_-|i}|) $$
+	$$ = \frac12|\sum_k \lambda_k| + |\sum_l \lambda_l|$$ where $\lambda_k > 0, \lambda_l < 0$.
+	$$ = \frac12 \sum_i^N |\lambda_i|$$
+\end{tcolorbox}
+\item Define distance $d(\rho, \tilde{\rho})$ between density operators as the maximal $L^1$ distance between corresponding probability distributions that can be achieved by any orthogonal measurement. From (a), (b), we have found that 
+	$$d(\rho, \tilde{\rho}) = \frac12 \sum_{i=1}^N |\lambda_i|.$$
+	The $L^1 \text{ norm } ||A||_1$ of an operator $A$ is defined as:
+	$$||A||_1 \equiv tr[(AA^\dag)^\frac12]$$
+	How can the distance $d(\rho,\tilde{\rho})$ be expressed as the $L^1$ norm of an operator?
+	\begin{tcolorbox}\textbf{Solution:}
+	$AA^\dag$ is PSD ($x^\dag AA^\dag x = (A^\dag x)^\dag (A^\dag x)$, which is inner product, nonnegative) and  thus$\sqrt{AA^{\dag}}$ is PSD. Therefore, by the spectral theorem $\sqrt{AA^\dag} = U = \sum_i^N \lambda_i \ket{i}\bra{i}$ for $\lambda_i > 0$. 
+	$$tr(U) = tr(\sum_i^N \lambda_i \ket{i}\bra{i}) = \sum_i^N \lambda_i tr(\ket{i}\bra{i})$$
+	$$ = \sum_i^N \lambda_i  = ||A||_1 \iff d(\rho, \tilde{\rho}) = \frac12 ||\rho - \tilde{\rho}||_1 $$
+	\end{tcolorbox}
+\item Suppose the states $\rho, \tilde{\rho}$ are pure states $\rho = \ket{\psi}\bra{\psi}$ and $\tilde{\rho} = \ket{\tilde{\psi}}\bra{\tilde{\psi}}$. If we adopt a suitable basis in the space spanned by the two vectors, and appropriate phase conventions, then these vectors can be expressed as:
+	$$\ket{\psi} = \left( \begin{array}{c}  cos \frac{\theta}{2} \\ sin \frac{\theta}{2} \end{array} \right), \ket{\tilde{\psi}} = \left( \begin{array}{c}  sin \frac{\theta}{2} \\ cos \frac{\theta}{2} \end{array} \right)$$ 
+	where $\braket{\psi|\tilde{\psi}}  = sin \theta$\\
+	Express the distance $d(\rho, \tilde{\rho})$ in terms of the angle $\theta$
+	\begin{tcolorbox}\textbf{Solution:}
+	\begin{align}
+		\rho - \tilde{\rho} &= \ket{\psi}\bra{\psi} - \ket{\tilde{\psi}}\bra{\tilde{\psi}} \\
+				    & = \left(\begin{array}{cc} cos^2(\frac{\theta}{2}) - sin^2(\frac{\theta}{2}) & 0 \\
+				    0 & sin^2(\frac{\theta}{2}) - cos^2(\frac{\theta}{2})\end{array}\right) 
+	\end{align}
+	$\iff \lambda = cos^2(\frac{\theta}{2}) - sin^2(\frac{\theta}{2}), sin^2(\frac{\theta}{2}) - cos^2(\frac{\theta}{2}) $ \\
+	$\implies d(\rho, \tilde{\rho}) = \frac12 \sum_i^N \lambda_i \\\equiv d(\theta) = \frac12 (|cos^2(\frac{\theta}{2}) - sin^2(\frac{\theta}{2})| + |sin^2(\frac{\theta}{2}) - cos^2(\frac{\theta}{2})|)$\\
+	Since $cos(2\theta) = cos^2(\theta) - sin^2(\theta)$ (double angle identity):\\
+	$= \frac12 |cos\theta| + |-cos\theta|$\\
+	$ = |cos\theta|$
+	\end{tcolorbox}
+	\newpage
+\item Express $|| \ket{\psi} - \ket{\tilde{\psi}}||^2$ in terms of $\theta$ and by comparing the result of (d), derive the bound 
+	$$d(\ket{\psi}\bra{\psi}, \ket{\tilde{\psi}}\bra{\tilde{\psi}}) \leq ||\ket{\psi} - \ket{\tilde{\psi}}||.$$
+	\begin{tcolorbox}\textbf{Solution:}
+		\begin{align*}
+			||\ket\psi -\ket{\tilde\psi}||^2 &= 2 cos^2 (\frac{\theta}{2}) - 4sin (\frac{\theta}{2})cos(\frac{\theta}{2}) + 2 sin^2  (\frac{\theta}{2})  \\
+					&=2(cos\frac{\theta}{2} -sin\frac{\theta}{2})^2\\
+			\implies ||\ket\psi-\ket{\tilde\psi}|| &= \sqrt2 |cos\frac{\theta}{2} -sin\frac{\theta}{2}|
+		\end{align*} 
+		Then, we can see that $d(\ket{\psi}\bra{\psi} \ket{\tilde{\psi}}\bra{\tilde{\psi}})$ 
+	\begin{align*}
+		= |cos x| &= |cos^2(\frac{\theta}{2}) - sin^2(\frac{\theta}{2}) | \tag{double angle}\\
+&= |(cos(\frac{\theta}{2}) + sin(\frac{\theta}{2})) (cos(\frac{\theta}{2})- sin(\frac{\theta}{2}))|\\
+&= |(cos(\frac{\theta}{2}) + sin(\frac{\theta}{2}))||(cos(\frac{\theta}{2})- sin(\frac{\theta}{2}))|\\
+&\leq (\sqrt{2}\sqrt{cos^2(\frac{\theta}{2}) + sin^2(\frac{\theta}{2})})|cos(\frac{\theta}{2})- sin(\frac{\theta}{2})| \tag{Cauchy-Schwarz}\\
+& = \sqrt2 |cos(\frac{\theta}{2})- sin(\frac{\theta}{2})|\\
+	\end{align*}
+	as desired.
+\end{tcolorbox}
+\item Bob thinks that the norm $|| \ket{\psi} - \ket{\tilde{\psi}}||$ should be a good measure of the distinguishability of the pure quantum states $\rho$ and $\tilde\rho$. Explain why Bob is wrong.
+	\begin{tcolorbox}\textbf{Solution:}
+		Two indistinguishable states, for instance considering the case where $\ket\psi = \ket{\tilde{\psi}}$, should have a normed difference of zero, since. Since a quantum state is a ray, $\ket{\psi} \equiv e^{i \theta}\ket{\psi}$ and therefore should be indistinguishable. However $||\ket{\psi}-e^{i\theta}\ket{\psi}|| \neq 0$ for nonzero $\theta$. 
+	\end{tcolorbox}
+\end{enumerate}
+\section{Which state did Alice make?}
+Consider a game in which Alice prepares one of two possible states: either $\rho_1$ with \textit{a priori} probability $p_1$ or $\rho_2$ with \textit{a priori} probability $p_2 = 1-p_1$. Bob is to perform a measurement and on the basis on the outcome to guess which state Alice prepared. If Bob's guess is right, he wins; if he guesses wrong, Alice wins. \\
+In this exercise you will find Bob's best strategy, and determine his optimal probability of error.\\
+Let's suppose (for now) that Bob performs a POVM with two possible outcomes, corresponding to the two nonnegative Hermitian operators $E_1$ and $E_2 = I-E_1$. If Bob's outcome is $E_1$, he guesses that Alice's state was $\rho_1$, and if it is $E_2$, he guesses $\rho_2$. Then the probability that Bob guesses wrong is
+$$p_{error} = p_1 tr(\rho_{1} E_2) + p_2 tr(\rho_2 E_1)$$
+\begin{enumerate}[label=(\alph*)]
+	\item Show that $$p_{error} = p_1 + \sum_i \lambda_i \braket{i|E_1|i}$$ where $\{\ket{i}\}$ denotes the orthonormal basis of eigenstates of the Hermitian operator $p_2 \rho_2 - p_1\rho_1$, and the $\lambda_i$'s are the corresponding eigenvalues.
+		\begin{tcolorbox}\textbf{Solution:}
+		\begin{align*}
+			p_{error} &= tr(p_1\rho_1E_2 + p_2\rho_2E_1) \tag{linearity of trace}\\
+			&= tr((p_1\rho_1)(I-E_1) + p_2\rho_2E_1 )\\
+			&= p_1 tr(\rho_1I) + tr(p_2\rho_2E_1 - p_1\rho_1E_1) \tag{lin. of trace}\\
+			&= p_1 + tr((p_2\rho_2 - p_1\rho_1)E_1)
+			\intertext{Since $p_2\rho_2 - p_1\rho_1$ is Hermitan, using spectral theorem, $p_2\rho_2 - p_1 \rho_1 = \sum_i \lambda_i \ket{i}\bra{i}$, where $\{\ket{i}\}$ form an orthonormal basis.}
+			&= p_1 + tr((\sum_i \lambda_i \ket{i}\bra{i})E_1)\tag{spectral thm.}\\
+			&= p_1 + \sum_i \lambda_i tr(\ket{i}\bra{i}E_1)\\
+			&= p_1 + \sum_i \lambda_i \braket{i|E_1|i}
+		\end{align*}
+		as desired.
+\end{tcolorbox}
+\newpage
+\item Bob's best strategy is to perform the two-outcome POVM that minimizes this error probability. Find the nonnegative operator $E_1$ that minimizes $p_{error}$, and show that the error probability when Bob performs this optimal two-outcome POVM is $$(p_{error})_{optimal} = p_1 + \sum_{neg} \lambda_i.$$ 
+	where $\sum_{neg}$ denotes the sum over all of the \textit{negative} eigenvalues of $p_2\rho_2 - p_1\rho_1$.
+	\begin{tcolorbox}\textbf{Solution:}
+		$E_1$ is operator that projects to negative eigenspace of $p_2 \rho_2 - p_1 \rho_1$, $E_1 = \sum_{\lambda_i < 0} \ket{i}\bra{i}$.
+		$$p_1 + \sum_i \lambda_i \braket{i|E_1|i} = p_1 + \sum_j \lambda_j$$
+		such that $\lambda_j < 0$. This is optimal since it must be the smallest probability, as if any $\lambda_j$ in the sum was positive then it would be greater than this value.
+	\end{tcolorbox}
+\item It is convenient to express this optimal error probability in terms of the $L^1$ norm of the operator $p_2 \rho_2 - p_1 \rho_1$,
+	$$||p_2\rho_2 - p_1 \rho_1||_1 = tr(|p_2 \rho_2 - p_1 \rho_1|) = \sum_{pos} \lambda_i - \sum_{neg} \lambda_i,$$
+	the difference between the sum of positive eigenvalues and the sum of negative eigenvalues. Use the property $tr(p_2\rho_2 - p_1\rho_1) = p_2 - p_1$ to show that
+$$(p_{error})_{optimal} = \frac12 - \frac12||p_2\rho_2 - p_1 \rho_1||_1$$
+Check whether the answer makes sense in the case where $\rho_1 = \rho_2$ and in the case where $\rho_1$ and $\rho_2$ have support on orthogonal subspaces
+\begin{tcolorbox}\textbf{Solution:}
+	\begin{align*}
+		tr(p_2\rho_2 - p_1\rho_1) &= p_2 - p_1 = \sum_{pos} \lambda_i + \sum_{neg} \lambda_i\\
+				& \implies \sum_{pos} \lambda_i = p_2 - p_1 - \sum_{neg} \lambda_i\\
+				& \implies ||p_2\rho_2 - p_1\rho_1||_1 = p_2-p_1 - 2\sum_{neg} \lambda_i\\
+				& = 1 - 2p_1 - 2\sum_{neg} \lambda_i 
+				\intertext{Substituting into the expression for $(p_{error})_{optimal}$:}
+		(p_{error})_{optimal} &= \frac12 - \frac12 ||p_2\rho_2 - p_1\rho_1||_1 \\
+				      &= \frac12 - \frac12 + p_1 + \sum_{neg} \lambda_i\\
+				      & = p_1 + \sum_{neg} \lambda_i
+	\end{align*}
+	as desired.
+\end{tcolorbox}
+\item Now suppose that Alice decides at random (with $p_1 = p_2 = \frac12$) to prepare one of two pure states $\ket{\psi_1}, \ket{\psi_2}$ of a single qubit, with 
+	$$|\braket{\psi_1 | \psi_2}| = sin(2\alpha), 0 \leq \alpha \leq \frac{\pi}{4}$$
+	With a suitable choice of basis, the two states can be expressed as:
+	$$\ket{\psi_1} = \left( \begin{array}{c} \text{cos }\alpha \\ \text{sin }\alpha \end{array} \right), \ket{\psi_2} = \left( \begin{array}{c} \text{sin }\alpha \\ \text{cos }\alpha \end{array} \right), $$
+	Find Bob's optimal two-outcome measurement, and compute the optimal error probability.
+	\begin{tcolorbox}\textbf{Solution:}
+		The density operator for a pure state $\ket{\psi}$ is $\rho = \ket{\psi}\bra{\psi}$.
+		$$\implies \rho_1 = \ket{\psi_1}\bra{\psi_1} = \left( \begin{array}{cc} cos^2 \alpha & cos\alpha sin \alpha \\ sin \alpha cos\alpha & sin^2\alpha \end{array}\right),$$
+		$$\rho_2 = \ket{\psi_2}\bra{\psi_2} = \left( \begin{array}{cc} sin^2 \alpha & cos\alpha sin \alpha \\ sin \alpha cos\alpha & cos^2\alpha \end{array}\right)$$
+		\begin{align*}
+			\implies p_1\rho_1 - p_2\rho_2 &= \frac12 \left( \begin{array}{cc} cos^2\alpha -sin^2 \alpha & 0 \\ 0 & sin^2\alpha-cos^2\alpha \end{array}\right)\\
+						       &= \frac12 \left(\begin{array}{cc} cos(2\alpha) & 0 \\ 0 & -cos(2\alpha) \end{array}\right)\\
+						       & \implies \lambda_{neg} = -\frac12 cos (2\alpha) \\
+						       & \implies (p_{error})_{optimal} = \frac12 - \frac12 cos(2\alpha)\\
+						       & \implies E_{1} = \ket{1}\bra{1} 
+	\end{align*}
+	\end{tcolorbox}
+\item Bob wonders whether he can find a better strategy if his POVM $\{E_i\}$ has more than two possible outcomes. Let $p(a|i)$ denote the probability that a state $a$ was prepared, given that the measurement outcome was $i$; it can be computed using the relations:
+	$$p_i p(1|i) = p_1 p(i|1) = p_1 tr \rho_1 E_i, $$$$ p_i p(2|i) = p_2 p(i|2) = p_2 tr \rho_2 E_i;$$
+	here $p(i|a)$ denotes the probability that Bob finds measurement outcome $i$ if Alice prepared the state $\rho_a,$ and $p_i$ denotes the probability that Bob finds measurement outcome $i$, averaged over Alice's choice of state. For each outcome $i$, Bob will make his decision according to which of the two quantities
+	$$p(1|i), p(2|i) $$
+	is the larger; the probability that he makes a mistake is the smaller of these two quantities. This probability of error, given that Bob obtains outcome $i$, can be written as 
+	$$p_{error}(i) = min(p(1|i), p(2|i)) =\frac12 - \frac12 |p(2|i) - p(1|i) |.$$
+	Show that the probability of error, averaged over the measurement outcomes, is
+	$$p_{error} = \sum_i p_i p_{error}(i) = \frac12 - \frac12 \sum_i |tr(p_2\rho_2 - p_1\rho_1)E_i|.$$
+	\begin{tcolorbox}\textbf{Solution:}
+	\begin{align*}
+	p_{error} &= \sum_i p_i p_{error}(i) \\
+			  &= \sum_i p_i (\frac12 - \frac12 |p(2|i) - p(1|i)|)\\
+			  &= \frac12 (\sum_i p_i) - \frac12 (\sum_i p_i|p(2|i)-p(1|i)|)\\
+			  \intertext{Since $\sum_i p_i = 1$ and since $p_i > 0$,}
+			  &= \frac12 - \frac12 \sum_i|p_ip(2|i) - p_ip(1|i)|\\
+			  &= \frac12 - \frac12 \sum_i |tr(p_2 \rho_2 E_i) - tr(p_1 \rho_1 E_i)|\\
+			  &= \frac12 - \frac12 \sum_i |tr(p_2\rho_2 - p_1\rho_1)E_i|
+	\end{align*}
+	\end{tcolorbox}
+\item By expanding in terms of the basis of eigenstates of $p_2\rho_2 - p_1\rho_1$, show that 
+	$$p_{error} \geq \frac12 - \frac12 ||p_2\rho_2 - p_1\rho_1||_1$$
+	\begin{tcolorbox}\textbf{Solution:}
+		Suppose we have $E_1...E_n$ s.t. $n>2$. Then, using spectral decomposition of $p_2\rho_2 - p_1\rho_1 = \sum_n \lambda_n \ket{n} \bra{n}$  
+		\begin{align*}
+			p_{error} &= \frac12-\frac12\sum_i|\sum_n \lambda_n tr(\ket{n}\bra{n}E_i)| \\
+				&= \frac12 - \frac12(\sum_i |\sum_n\lambda_n \braket{n|E_i|n}|)\\
+				&\geq \frac12 - \frac12(|\sum_n\lambda_n \braket{n|\sum_i E_i|n}|) = \frac12 - \frac12(|\sum_n \lambda_n|)\\
+				&= \frac12 - \frac12||p_2\rho_2 - p_1\rho_1||_1
+		\end{align*}
+	\end{tcolorbox}
+\end{enumerate}
+\end{document}

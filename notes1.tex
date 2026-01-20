@@ -1,0 +1,151 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+
+\title{Quantum Computation Notes \\ \large Measurement and Evolution}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-2cm}
+\tableofcontents
+\section{Measurements}
+We reexamine the third postulate of quantum mechanics as outlined in the previous section.\\
+\textbf{Postulate 3:} Quantum measurements are described by a collection of \{$M_m$\} of measurement operators. If a quantum system is in state $\ket{\psi}$, then the probability that result $m$ occurs is $p(m) = \braket{\psi|M^{\dag}_m M_m|\psi}$ and the state after the system is $\frac{M_m\ket{\psi}}{\sqrt{\braket{\psi|M^{\dag}_m M_m|\psi}}}$. The measurement operators satisfy the completeness equation $\sum_m M^{\dag}_m M_m = I \implies 1 = \sum_m p(m)$.
+\begin{tcolorbox}\textbf{Example}
+	The measurement of a qubit in computational basis $\ket0, \ket1$ is a simple and important example. We can define projectors $M_0 = \ket0\bra0, M_1 = \ket1\bra1$. We can easily verify each measurement operator is Hermitian (for any $v, \ket{v}\bra{v}$ is Hermitian), nonnegative, and that $M_i^2 = M_i$ (follows from definition of projector, see Nielsen 2.16).
+	Suppose we measure $\ket{\psi} = \alpha\ket0 + \beta\ket1$. We measure this in the computational basis.
+	$$p(0) = \braket{\psi|M_0^{\dag} M_0|\psi} = \braket{\psi|M_0|\psi}$$
+	$$= \braket{\psi|(\alpha\ket{0}\braket{0|0} + \beta\ket{0}\braket{0|1})} \text{by orthogonality of comp. basis,}$$
+	$$= \alpha\braket{\psi|0} = |\alpha|^2$$
+	The post measurement state is $\frac{M_0\ket{\psi}}{|a|} = \frac{a}{|a|}\ket0 \equiv \ket0$
+\end{tcolorbox}
+See the textbook's rigorous proof as well as intuitive explanation using Alice/Bob game for why we cannot reliably distinguish non-orthogonal states!
+\section{Projective Measurement/Orthogonal Measurement}
+Projective measurements are a special case of general measurement. Preskill refers to these as orthogonal measurements A projecitve measurement is described by an observable $M$, a Hermitian operator on the state space of the system being observed. The observable has spectral decomposition $M = \sum_m m P_m,$ where $P_m$ is the projector onto the eigenspace of $M$ with eigenvalue $m$. The probability of result $m$ is given by $p(m) = \braket{\psi|P_m|\psi}$ and the state after the measurement is $\frac{P_m\ket{\psi}}{\sqrt {p(m)}}$. Both of these follow from the definitions established above provided that the measurement operators satisfy completeness relation, $M_m$ are Hermitian, and that $M_m M_{m'} = \delta_{m,m'}M_m$.\\
+\textbf{PVM key conditions:}
+\begin{enumerate}
+	\item $M^{\dag}_m M_m = M_m$
+	\item $M_m M_{m'} = \delta_{mm'}M_m$
+	\item $\sum_m M_m = I$
+	\item $M_m$ can only have eigenvalues of 0,1.	
+\end{enumerate}
+Recall from notes0 that $E(M) = \braket{A} = \braket{\psi |M| \psi}$ and recall from PSTAT120AB that $(\Delta(M))^2 = \braket{M^2} - \braket{M}^2$ (variance formula).
+Common phrasing is "to measure in basis $\ket{b}$", where $\ket{b}$ forms an orthonormal basis, means to form projective measurement with $P_m = \ket{m}\bra{m}$.
+Another useful fact (see Bloch sphere, notes 0!): for any 3 dimensional unit vector $v$, we can define observable: $v \dot \sigma = v_1 \sigma_1 + v_2 \sigma_2 + v_3 \sigma_3$.
+\section{POVM Measurements/Generalized Measurement}
+POVM measurements, which stands for positive operator valued measure, are more concerned with the probabilities of certain outcomes than with the post measurement state. Preskill refers to these as generalized measurements. \\
+Suppose a measurement is described by measurement operators $M_m$ and it is performed upon a quantum system in state $\ket\psi$. Then the probability of outcome $m$ is given by $p(m) = \braket{\psi|M_m^{\dag} M_m|\psi}$. Define $E_m = M^{\dag}_m M_m$. Then from postulate 3, $E_m$ is a positive operator that follows completeness property and that $p(m) = \braket{\psi |E_m |\psi} \implies$ we can use the set of $E_m$ to determine probabilities of different measurement outcomes, known as POVM elements, where the set $\{E_M\}$ is a POVM. Consider a projective measurement described by operators $P_m$, where $P_m P_{m'} = \delta_{mm'}P_m$ (orthonormality) and $\sum_I P_m = I$ (completeness). Only in this instance (!!) the POVM elements are the operators themselves.\\
+\textbf{POVM key conditions:} Any set of operators $\{E_m\}$ such that
+\begin{enumerate}
+	\item Each $E_m$ is positive.
+	\item $\sum_m E_m = I$, necessary for all probablities summing to 1.
+	\item $p(m) = \braket{\psi|E_m|\psi}$
+\end{enumerate}
+The key thing is that they aren't necessarily orthogonal. As discussed previously, we cannot distinguish between non-orthogonal states. However, we can perform a POVM measurement which never mis-identifies.\\
+Nielsen and Chuang have deriving a unitary map from a POVM as an exercise (see Nielsen 2.63) while Preskill has deriving POVM from unitary map.\\
+Suppose we have POVM operator $E_m$. The measurement operator $M_m = U_a \sqrt{E_m}$ satisfies $M_m^{\dag}M_m$ where $U_A$ is arbitrary unitary from the polar decomposition $\implies$ post measurement state is $U_m \frac{\sqrt{E_m} \ket{\psi}}{||\sqrt{E_m} \ket{\psi}||}$
+\begin{tcolorbox}\textbf{Example:}
+	Textbook example covering equations 2.118-2.120
+\end{tcolorbox}
+\section{Quantum Channels}
+Suppose we make a POVM measurement without recording the otucome, so instead we sum over all outputs weighted by probability to guess output state (expected value). First, recall that for outcome $m$, $p(m) = tr(M_m \rho M^\dag_m) = \braket{\psi |M^\dag_m M_m| \psi} = \braket{\psi |E_m| \psi} $ where $\sum_m E_m = I$. Then, recall that for a pure state $\ket{\psi}$, performing measurement $M_m$ causes $\ket{\psi}$ to collapse to $\ket{\psi}' = \frac {M_m \ket\psi}{\sqrt{p(m)}} \implies$ for density operator $\rho = \ket{\psi}\bra{\psi}, \rho' = (\frac{M_m \ket{\psi}}{\sqrt{p(m)}})(\frac{\bra{\psi}M^{\dag}_m}{\sqrt{p(m)}}) = \frac{M_m \rho M^{\dag}_m}{tr(M_m\rho M^\dag_m)}$
+Thus to compute the expected value after a POVM measurement we can define linear map $$E(\rho) = \sum_a p_a \rho_a = tr(M_a \rho M^\dag_a \frac{M_a \rho M^{\dag}_a}{tr(M_a \rho M^\dag_a)}) = \sum_a M_a \rho M_a^{\dag}= \rho'$$
+where $M^\dag_a M_a$ follows completeness prop.\\
+\textbf{Vocab alert!}\\
+$E$ acts on any density operator and is called a \textit{quantum channel}, also known as a \textit{trace-preserving completely positive map} or TPCP map. The summation above is referred to as the \textit{operator-sum representation} of the quantum channel, and operators $\{M_a\}$ are \textit{Kraus operators} or \textit{operation elements} of the channel. \\
+
+\textbf{TPCP Key Properties:}\\
+\begin{enumerate}
+	\item Linearity: $E(\alpha \rho_1 + \beta \rho_2) = \alpha E(\rho_1) + \beta E(\rho_2)$
+	\item Preserves Hermiticity: $\rho = \rho^\dag \implies E(\rho) = E(\rho)^\dag$
+	\item Preserves positivity: $\rho \geq 0 \implies E(\rho) \geq 0$
+	\item Preserves trace: $tr(E(\rho)) = tr(\rho)$
+\end{enumerate}
+See Preskill's notes for a proof/derivation for how each Kraus operator $M_a$ is proportional to a single unitary matrix and thus that $E$ is a unitary map.
+\begin{tcolorbox}\textbf{Example:}
+	Find the Kraus operators and the quantum channel for the qubit depolarizing channel. With probability $1-p$, no error occurs, and with probability $p$, one of three equally likely Pauli errors occurs.
+	$$X = \left[\begin{array}{cc} 0 & 1 \\ 1 & 0 \end{array} \right], Y = \left[\begin{array}{cc} 0 & -i \\ i & 0 \end{array} \right], Z = \left[\begin{array}{cc} 1 & 0 \\ 0 & -1 \end{array}\right]$$
+	We know that $\rho' = p_0\rho_0 + p_1\rho_0 +...p_n\rho_0$ where the probability of each $\rho_i$ is $p_i$. To satisfy $p(m) = \braket{\psi |M^{\dag}_m M_m| \psi},$ it must be that $M_0 = \sqrt{1-p}I, M_1 = \sqrt{\frac{p}{3}}X, M_2 = \sqrt{\frac{p}{3}}Y, M_3 = \sqrt{\frac{p}{3}}Z$\\
+	We can also clearly see that since each Pauli matrix is unitary, $\sum_i M^\dag_m M =  (1-p)I + 3(\frac{p}{3}I) = I$, so the completeness condition is met. Thus:
+	$$\rho' = E(\rho) = (1-p)\rho + \frac{p}{3}(X\rho X + Y\rho Y + Z \rho Z)$$
+	We will revisit this later after discussing Stinespring dilations.
+\end{tcolorbox}
+We can extend our discusion of POVMs and quantum channels as both are considered to be special cases of quantum operations.
+Suppose we have Kraus operators $\{M_a\mu\}$ that obey the usual completeness relation. Suppose then that after a measurement, we remember $a$ but forget $\mu$. Then, if the state is $\rho$ before measurement, then the post-measurement state is:
+$$E_a(\rho) = \sum_\mu M_{a\mu} \rho M^{\dag}_{a\mu}, p(a) = tr(E_a(\rho)) = \sum_{\mu} p(a,\mu).$$
+The completeness principle implies $\sum_\mu  M^{\dag}_{a\mu}M_{a\mu} \leq I$. If $\mu = 1$, then it is a POVM. A quantum channel or a POVM must be completely positive, but a quantum operator may not be. All must be linear.
+\section{Channel-state duality and dilation}
+We will show that we can uniquely map channels to states via the \textit{Choi-Jamiolkowski isomorphism}. First consider channel $I \otimes E$ on maximally entangled state $$\ket{\tilde{\Phi}}_{RA} = \sum_i^{d-1} \ket{i}_R \otimes \ket{i}_A$$
+where $A,R$ have dimension \textit{d}. This vector is not normalized for the sake of convenience. Then, if $E: A \rightarrow A'$ is completely positive, then $I \otimes E$ maps $\ket{\tilde\Phi}\bra{\tilde\Phi}$ to a density operator on $RA'$. Thus:
+$$(I \otimes E) ((\ket{\tilde{\Phi}}\bra{\tilde{\Phi}})_{RA}) = \sum_a \ket{\tilde{\Psi_a}}\bra{\tilde{\Psi_a}}$$
+Then, consider vector $\ket{\phi}_A = \sum_i \phi_i \ket{i}_A  = \sum_i \phi_i \braket{i|\tilde{\Phi}} = \braket{\phi^*|\hat{\Phi}}_{RA}$
+$$\implies E(\ket{\phi}\bra{\phi}) = \sum_a(\braket{\phi^*|\tilde{\Psi}} \braket{\tilde{\Psi}| \phi^*})$$
+\\
+Stinespring dilation is a method for realizing operator sum representation of channel $E:A\rightarrow A'$ as a unitary map on an extended system. Introduce system $E$ with dim = num of Kraus operators and define map:
+$$U_{A\rightarrow A'E}: \ket{\psi} \mapsto \sum_a M_a \ket{\psi} \otimes \ket{a}$$
+The core idea of the Stinespring dilation is to introduce system $E$ s.t. the channel $E(\rho)$ is yielded when you trace out $E$.
+Given such a $\ket{\phi}$, we can define $M_A\ket{\phi}_A = \braket{\phi^*|\tilde{\Phi}}_{RA'}$ 
+\begin{tcolorbox}\textbf{Example:}
+	Calculate the unitary operator representation for the qubit depolarizing channel.
+	We construct system $E$ that is four dimensional, one for each outcome/Kraus operator.
+	In the previous example, we should what each $M_a$ must be.
+	Thus. the unitary operator representation is:
+	$$U_{A\rightarrow AE}: \ket{A} \mapsto \sqrt{1-p} \ket{\psi}_A \otimes \ket{0}_E $$$$ + \sqrt{\frac{p}{3}} (X\ket{\psi}_A \otimes {1}_E + Y \ket{\psi}_A \otimes {2}_E + Z \ket{\psi}_A \otimes\ket{3}_E )$$
+We see that the partial trace over the environment in the $\{\ket{a}\}$ basis yields each $M_A$ as expected:
+$$M_A  = \bra{a}U$$
+\end{tcolorbox}
+\section{Axioms revisited}
+We reformulate the axioms of quantum mechanics in terms of open systems instead of closed systems as we originally did in \textit{notes0.tex}.
+\begin{enumerate}
+	\item \textbf{States:} A state is a density operator, a nonnegative Hermitian operator in Hilbert space with unit trace.
+	\item \textbf{Measurement:} A measurement is a POVM, a partition of unity by nonnegative operators. A measurement $E_A$ on state $\rho$ occurs with probability $tr(E_a\rho)$.
+	\item \textbf{Dynamics:} Time evolution is described by a TPCP.
+\end{enumerate}
+\section{Exercises}
+\begin{enumerate}
+	\item (Mosca 3.43) Verify that a measurement of Pauli observable X is equivalent to a complete measurement with respect to basis $\{\frac{1}{\sqrt{2}}(\ket0 + \ket1), \frac{1}{\sqrt2}(\ket0 - \ket1)\}$
+	\begin{tcolorbox}\textbf{Solution:}
+	\end{tcolorbox}
+	\item (Nielsen 2.57) 
+	\begin{tcolorbox}\textbf{Solution:}
+		Intuition: Measure $L_l$, state becomes $L_l\ket\psi$. Measure this with $M_m$. Show its same as $N_{lm}$. See definition of post measurement state.  
+	\end{tcolorbox}
+\item (Nilesen 2.58) Suppose we prepare a quantum system in eigenstate $\ket{\psi}$ of some observable $M$, with corresponding eigenvalue $m$. What is the expected value of $M$ and the standard deviation of $M$.
+	\begin{tcolorbox}\textbf{Solution:}
+	$$E[M] = \braket{M} = \braket{\psi|M|\psi} = \braket{\psi|m|\psi}  = m\braket{\psi|\psi}  = m$$
+	$$E[M^2] = \braket{\psi |M(M|\psi) }=m\braket{\psi|M|\psi} = m^2\braket{\psi|\psi} = m^2$$
+	$$\iff (\Delta(M))^2 = m^2 - (m)^2 = 0$$
+
+	\end{tcolorbox}
+\item (Nielsen 2.62) Show any measurement where the measurement operators and the POVM elements coincide is a projective measurement.
+	\begin{tcolorbox}\textbf{Solution:}
+		\begin{proof}
+		Suppose the measurement operators and the POVM elements coincide.
+		Then, for all $M_m$, $M_m = E_m$. Since $E_m = M^{\dag}_mM_m = M_m$, we have idempotence (prop 1). Then, since $\sum_m E_m = I \iff \sum_m M_m = I$ and therefore we have completeness.\\
+		Then, consider $\sum_m M_m = I \implies M_n \sum_m M_m = M_n$
+		$$ \implies M^2_n + \sum_{m \neq n} M_nM_m  = M_n \iff M^2_n + \sum_{m \neq n} M_nM_m  = M_n$$
+		$$ \sum_{m \neq n} M_n M_m= 0 \iff \sum_{m\neq n} \braket{\psi | M_nM_m | \psi} = 0 $$
+		Since 0 is the sum of all strictly positive operators, it must be that each $M_nM_m$ is zero. Thus we have $M_mM_n = \delta_mn M_m$. Therefore if measurement operators and POVM elements coincide, then it is a projective measurement.
+		\end{proof}
+	\end{tcolorbox}
+\item (Nielsen 2.63) Suppose a measurement is described by measurement operators $\{M_m\}$. Show there exist unitary operators $U_m$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
+	\begin{tcolorbox}\textbf{Solution:}
+	\begin{proof}
+	Suppose we are given measurement operator $M_m$. Then, using polar composition there exists unitary operator $U$ such that $M_m = U_m J_m$, where $J_m$ is a positive operator. A positive operator always has a positive square root $\iff \exists E_m s.t. J_m = \sqrt{E_m}$, satisfying first condition for POVM (positive).\\
+		See that $M^\dag_m = \sqrt{E_m}^\dag U_m^\dag =  \sqrt{E_m} U_m^\dag $
+		$$\implies M_m^\dag M_m = \sqrt{E_m}U^{\dag}_m U \sqrt{E_m} = {E_m}$$
+		Since $\sum_m M^\dag_m M_M  = \sum_m E_m = I$, the second condition is met.
+		Since $M^\dag_M M_M = E_M \iff p(m) =\braket{\psi|E_m|\psi}$,  satisfying the third condition.
+		Therefore we see a there exists a unitary operator $U$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
+	\end{proof}
+	\end{tcolorbox}
+
+\end{enumerate}
+\end{document}

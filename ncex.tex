@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+\title{Exercises from Nielsen and Chuang}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{2.1.5 Eigenvectors and eigenvalues}
+(2.11) Find eigenvectors, eigenvalues, and diagonal representations of Pauli X,Y,Z.
+\begin{tcolorbox}\textbf{Solution:}
+	The eigenvalues of all Pauli matrices are $1,-1$.
+	The eigenvectors are as follows:
+	$$ \ket{\psi}_{x+} = \frac{1}{\sqrt2}(\ket0 + \ket1), \ket{\psi}_{x-}=\frac{1}{\sqrt2}(\ket0 - \ket1)$$
+	$$\ket{\psi}_{y+} = \frac{1}{\sqrt2}(\ket0 + i\ket1), \ket{\psi}_{y-} = \frac{1}{\sqrt2}(\ket0 -i\ket1)$$
+	$$\ket{\psi}_{z+} = \ket0, \ket{\psi}_{z-} = \ket{1}$$
+	A diagonal representation is defined as $A = \sum_i \lambda_i \bra{i}\ket{i}$ where the vectors $i$ form an orthonormal set of eigenvectors. Thus, the diagonal representations of any Pauli matrix is:
+	$$\sigma = \ket{\psi}_{+}\bra{\psi}_{+} - \ket{\psi}_{-}\bra{\psi}_{-}$$
+\end{tcolorbox}
+(2.12) Prove the matrix $\begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix}$ is not diagonalizable.
+\begin{tcolorbox}\textbf{Solution:}
+	The eigenvalues of the matrix are $1$ with algebraic multiplicity $2$ (easily seen since it is a lower triangular matrix). Then, the eigenvectors are $\begin{bmatrix} 0 \\ \alpha \end{bmatrix}$, for $\alpha \in \mathbb{C}$.
+
+A matrix is diagonalizable iff there exists a basis of eigenvectors of the matrix. There cannot be a matrix of eigenvectors since there is only one linearly independent eigenvector of the matrix, which is less than the dimension of the matrix. Thus it cannot form a basis and it cannot be diagonalizable.
+\end{tcolorbox}
+\section{2.1.6 Adjoints and Hermitian Operators}
+
+
+\section{2.1.7 Tensor Products}
+dog
+\section{2.2.2 Evolution}
+dog
+\section{2.2.3 Quantum Measurement}
+dog
+\section{2.2.6 POVM Measurements}
+dog
+\section{2.2.8 Composite Systems}
+dog
+\section{2.3 Superdense Coding}
+dog
+\section{2.4.2 Density Operator Properties}
+dog
+\section{2.4.3 Reduced Density Operator}
+dog
+
+\end{document}
