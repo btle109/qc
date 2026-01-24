@@ -33,23 +33,225 @@
 A matrix is diagonalizable iff there exists a basis of eigenvectors of the matrix. There cannot be a matrix of eigenvectors since there is only one linearly independent eigenvector of the matrix, which is less than the dimension of the matrix. Thus it cannot form a basis and it cannot be diagonalizable.
 \end{tcolorbox}
 \section{2.1.6 Adjoints and Hermitian Operators}
+(2.13) If $\ket{w}$ and $\ket{v}$ are any two vectors, show that $(\ket{w}\bra{w})^\dag = \ket{v}\bra{w}$.
+\begin{tcolorbox}\textbf{Solution:}
+	$(\ket{w}\bra{v})^\dag = \bra{v}^\dag\ket{w}^\dag = \ket{v}\bra{w}.$
+\end{tcolorbox}
+(2.14) (Anti-linearity of the adjoint) Show that the adjoint operation is antilinear,
+$$(\sum_i a_iA_i)^\dag = \sum_i a_i^* A_i^\dag$$
+\begin{tcolorbox}\textbf{Solution:}
+	$$(\sum_i a_i A_i)^\dag = \sum_i a_i^\dag A_i^\dag = \sum_i a_i^* A_i^\dag$$
+	where $a^\dag = (a^*)^T = a^*$ since $a$ is a scalar.
+\end{tcolorbox}
+(2.15) Show that $(A^\dag)^\dag = A$
+\begin{tcolorbox}\textbf{Solution:}
+	$$(\ket{v}, A\ket{w}) = (A^\dag \ket{v}, \ket{w}) = (\ket{v}, (A^\dag)^\dag \ket{w})$$
+	$$\iff A = (A^\dag)^\dag$$
+\end{tcolorbox}
+(2.16) Show any projector P satisfies $P^2 = P$
+\begin{tcolorbox}\textbf{Solution:}
+	A projector is defined as $P = \sum_i \ket{i}\bra{i}$
+	$$\implies P^2 = \sum_{ij} \ket{i}\bra{i} \ket{j}\bra{j} = \sum_{ij} \ket{i} \delta_{ij} \bra{j} = \sum_i \ket{i}\bra{i} = P.$$
+\end{tcolorbox}
+(2.17) Show that a normal matrix is Hermitian iff it has real eigenvalues.
+\begin{tcolorbox}\textbf{Solution:}
+	\begin{proof} First we prove that a normal matrix is Hermitian if it has real eigenvalues.\\
+	Suppose we have matrix $A$ such that $A=A^\dag$ and $AA^\dag = A^\dag A$. \\
+	Then, suppose $A$ has eigenvalue $\lambda \iff Av = \lambda v$ for some nonzero $v$.
+	Then, we see that $v^\dag A^\dag = v^\dag A =\lambda^\dag v$, where the first equality is given by the fact the matrix is Hermitian.\\
+	Consider $$Av = \lambda v$$
+	$$\iff v^\dag A v = v^\dag \lambda v$$
+	$$\iff \lambda^\dag v^\dag v = \lambda v^\dag v \iff \lambda^\dag =  \lambda$$
+	$\iff \lambda$ is real.
+	Then we prove if a normal matrix has real eigenvalues then it is Hermitian.
+	Suppose all eigenvalues are real, then $\lambda = \lambda^\dag$. We see that $Av = \lambda v \iff v^\dag A^\dag = \lambda v^\dag$.
+	Then, left multiplying the first equation by $v^\dag$ and right multiplying the second equation by $v$ yields:
+	$$v^\dag A v = \lambda |v|^2 = v^\dag A^\dag v \iff A = A^\dag$$
+\end{proof}
 
+\end{tcolorbox}
+	(2.18) Show that all eigenvalues of a unitary matrix have modulus 1, that is, can be written in the form $e^{i\theta}$ for some real $\theta$.
+	\begin{tcolorbox}\textbf{Solution:}
+	$$Uv = \lambda v \iff v^\dag U^\dag Uv = v^\dag |\lambda|^2 v \iff v^\dag v = v^\dag |\lambda|^2 v$$
+	$$\iff |\lambda|^2 = 1$$
+	\end{tcolorbox}
+(2.19) Show Pauli matrices are Hermitian and unitary.
+\begin{tcolorbox}\textbf{Solution:}
+	Trivial to see Pauli matrices are equal to adjoints and to use matrix multiplication to check unitary.
+\end{tcolorbox}
+(2.20) Suppose $A'$ and $A''$ are matrix representations of an operator $A$ on a vector space $V$ with respect to two different orthonormal bases, $\ket{v_i}$ and $\ket{w_i}$. Then the elements of $A'$ and $A''$ are $A'_{ij} = \braket{v_i|A|v_j}$ and $A''_{ij} = \braket{w_i | A|w_j}$. Characterize the relationship between $A'$ and $A''$.
+\begin{tcolorbox}\textbf{Solution:}
+	We use the change of basis theorem.
+	Define $P = \sum_i \ket{w_i}\bra{v_i} \implies P^\dag = \sum_i \ket{v_i}\bra{w_i}$.
+Then, the elements of $P^\dag A' P =  \sum_{ijklmn}\braket{v_i  \ket{v_m}\bra{w_n}|A|\ket{w_k}\bra{v_l} v_j} = \sum_{ij} \braket{w_i|A|w_j} = A''.$
+\end{tcolorbox}
+(2.23) Show that the eigenvalues of a projector $P$ are all either 0 or 1.
+\begin{tcolorbox}
+	Suppose we have projector $P = \sum_i \ket{i} \bra{i}$. For any nonzero vector $\ket{v}$, then $P\ket{v} = \delta_{iv}\ket{v} \iff $ all eigenvectors for $P$ are either 0 or 1.
+\end{tcolorbox}
+(2.24) (Hermiticity of positive operators) Show that a positive operator is Hermitian.
+\begin{tcolorbox}\textbf{Solution:}
+	Define $B$, $C$ as follows: $$ B = \frac12 (A+A^\dag), C = \frac12 i(A-A^\dag)$$
+	We can see that $B + iC = \frac12 (A+A^\dag) - \frac12 (A - A^\dag)=  A$ as is necessary.
+	Then, $\braket{\psi|A|\psi} > 0$ for all $\ket{\psi} \iff \braket{\psi|B|\psi} + i \braket{\psi|C|\psi}$.
+	$$\iff \braket{\psi|C|\psi} = 0$$ due to the complex scalar. Therefore it must be that $A=B$, which is Hermitian.
+\end{tcolorbox}
+(2.25) Show that for any operator $A, A^\dag A$ is positive.
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose $A\ket{v} = \ket{w}$. Then, $\bra{v} A^\dag A\ket{v} = \braket{w|w} = |w|^2 > 0$.
+\end{tcolorbox}
 
 \section{2.1.7 Tensor Products}
-dog
+(2.26) Let $\ket{\psi} = \frac{\ket0 + \ket1}{\sqrt{2}}$. Write out $\ket{\psi}^{\otimes2}, \ket{\psi}^{\otimes3}$ explicity, both in terms of tensor products and using the Kronecker product.
+\begin{tcolorbox}\textbf{Solution:}
+$\ket{\psi}^{\otimes2} = \frac12 (\ket{00} + \ket{01} + \ket{10} + \ket{11}) = \frac12 \begin{bmatrix} \psi \\ \psi \end{bmatrix} = \frac12 \begin{bmatrix} 1 \\ 1 \\ 1 \\ 1 \end{bmatrix}$
+$$\ket{\psi}^{\otimes3} = \frac{\sqrt2}{4} (\ket{000} + \ket{010} + \ket{100} + \ket{110} + \ket{001} + \ket{011} + \ket{101} + \ket{111})$$
+$$= \frac{\sqrt{2}}{4} \begin{bmatrix} \psi \\ \psi \\ \psi \\ \psi \end{bmatrix} = \begin{bmatrix} 1_1 \\ \vdots \\ 1_8\end{bmatrix}$$
+\end{tcolorbox}
+(2.27) Calculate the matrix representation of the tensor products of Pauli operators $X_1 Z_2, I_1 X_2, X_1 I_2$
+. Is the tensor product commutative?
+\begin{tcolorbox}\textbf{Solution:}
+	$$X_1 Z_2 = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 &0 & 0 & 0 \\ 0 & -1 & 0 & 0 \end{bmatrix}, I_1X_2 = \begin{bmatrix}  0 & 1 & 0 & 0 \\  1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0\end{bmatrix}, X_1I_2 = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{bmatrix}$$
+	The tensor product is not commutative.
+\end{tcolorbox}
+(2.28) Show the tranpose, complex conjugation, and adjoint operators distribute over tensor product.
+\begin{tcolorbox}\textbf{Solution:}
+	The elements of $(A\otimes B)^*$ are $(A_{ij}B)^* = A_{ij}^* B_{mn}^*$, since $(zw)* =z*w*$. This can be more rigorously expanded. The same follows for transpose and since adjoint is both conjugation and transpose, it commutes too.
+\end{tcolorbox}
+(2.29) Show the tensor product of two unitary operators is unitary.
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose we have $U \otimes V$, where $U$ and $V$ are unitary $\iff UU^\dag = I, VV^\dag = I$. Since the adjoint distributes over tensor product, $(U \otimes V)^\dag = U^\dag \otimes V^\dag \iff (U\otimes V)(U^\dag \otimes V^\dag) = (UU^\dag \otimes VV^\dag)= I^{mn}$ where $m$ is dim $U$ and $n$ is dim $V$.
+\end{tcolorbox}
+(2.30) Show that the tensor product of two Hermitian operators is Hermitian.
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose we have $A \otimes B$ where $A,B$ are Hermitian. Since adjoint distributes over tensor product,
+	$$(A\otimes B)^\dag = A^\dag \otimes B^\dag = A \otimes B$$
+\end{tcolorbox}
+(2.31) Show the tensor product of two positive operators is positive.
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose we have positive operators $A,B$. Then $\braket{\psi |A \otimes B|\psi>} = \braket{\psi|A|\psi} \otimes \braket{\psi|B|\psi}$, where each side of the tensor product is greater than zero which then implies the tensor product is positive.
+\end{tcolorbox}
+(2.32) Show the tensor product of two projectors is a projector.
+\begin{tcolorbox}\textbf{Solution:}
+	Consider $P_1 = \sum_i \ket{i} \bra{i}, P_2 = \sum_j \ket{j} \bra{j}$. Then, $P_1 \otimes P_2$ is Hermitian (see exercise 2.30). Then, see $(P_1 \otimes P_2)^2 = P_1P_1 \otimes P_2P_2 = P_1 \otimes P_2$. Thus the tensor product of two projectors is a projector.
+\end{tcolorbox}
+(2.33) The Hadamard operator on one qubit may be written:
+$$H = \frac{1}{\sqrt2} [(\ket{0} + \ket{1})\bra{0} + (\ket0 - \ket1)\bra1]$$
+Show that the Hadamard transform on $n$ qubits, $H^{\otimes n}$ may be written as:
+$$H^{\otimes n} =  \frac{1}{\sqrt{2^n}} \sum_{x,y} (-1)^{xy} \ket{x}\bra{y}$$
+Write out an explicit matrix representation for $H^{\otimes2}.$
+\begin{tcolorbox}\textbf{Solution:}
+	$$H^{\otimes2} = \frac12 \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & -1 & 1 & -1 \\ 1 & 1 & -1 & -1 \\ 1 & -1 & -1 & 1 \end{bmatrix}$$
+	We prove by induction.
+	\begin{proof}
+		We see that $H^{\otimes1} = \frac{1}{\sqrt{2}}\sum_{x,y} (-1)^{xy} \ket{x}\bra{y}  = \frac{1}{\sqrt2} \ket{0}\bra{0} + \ket{1}\bra{0} + \ket{0}\bra{1} - \ket{1}\bra{1}= H$. Then, assume it is true for $H^{\otimes n-1}.$ We prove it is true for $H^{\otimes n}$.
+		\begin{align*}
+			H^{\otimes n} &= \frac{1}{\sqrt{2^{n-1}}} \sum+{x,y} (-1)^{xy} \ket{x}\bra{y} \otimes H\\
+				      &= \frac{1}{\sqrt{2^n}} \sum+{x,y} (-1)^{xy} \ket{x}\bra{y}  
+		\end{align*}
+	\end{proof}
+\end{tcolorbox}
 \section{2.2.2 Evolution}
-dog
+(2.51) Verify that the Hadamard gate $H$ is unitary.
+\begin{tcolorbox}\textbf{Solution:}
+	$$HH^T = H^TH = H^2 = \frac12 \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac12 \begin{bmatrix}2 & 0 \\ 0 & 2 \end{bmatrix} = I.$$
+\end{tcolorbox}
+(2.52) Verify that $H^2 = I$.
+\begin{tcolorbox}\textbf{Solution:}
+	See above.
+\end{tcolorbox}
+(2.55) Define $U(t_1,t_2) \equiv exp[\frac{-i H(t_2 - t_1)}{\hbar}]$. Show $U(t_1, t_2)$ is unitary.
+\begin{tcolorbox}\textbf{Solution:}
+	\begin{align*}
+		U^\dag(t_1, t_2) &= exp [\frac{-i^\dag}{\hbar} H^\dag(t_2-t_1)] = exp [\frac{i}{\hbar} H(t_2-t-1)]\\
+		UU^\dag &=  exp [ \frac{i-i}{\hbar}H(t_2 - t_1)] = exp[0] = I
+\end{align*}
+	where the last equality is from exponential operator on zero matrix.
+\end{tcolorbox}
+(2.56) Use spectral decomposition to show that $K \equiv ilog(U)$ is Hermitian for any unitary $U$, and thus $U = exp(iK)$ for some Hermitian $K$.
+\begin{tcolorbox}\textbf{Solution:}
+	Any eigenvalue of a unitary matrix has length $1$. Since the eigenvalues are in a Hilbert space and therefore complex numbers, any eigenvalue of any unitary matrix can be represented as $\lambda_i = e^{i\theta_i}$. Then, performing the spectral decomposition of arbitrary unitary matrix $U$:
+	$$U = -i \sum_j \log(e^{i\theta_j} \ket{j}\bra{j}) = -i \sum_j i\theta_j \ket{j}\bra{j} = \sum_j \theta_j\ket{j}\bra{j}$$
+	$$\implies U^\dag = U$$. Therefore $K$ as defined is Hermitian for any unitary $U$. To show that $U = exp(iK),$ multiply both sies by $i$ and apply the exponentiation operator to both sides.
+\end{tcolorbox}
 \section{2.2.3 Quantum Measurement}
-dog
+(2.57) Suppose $\{L_l\}$ and $\{ M_m\}$ are two sets of measurement operators. Show that a measurement is defined by the measurement operators $\{ L_l\}$ followed by a measurement defined by the measurement operators $\{ M_m\}$ is physically equivalent to a single measurement defined by measurement operators $\{N_{lm}\}$ where $N_{lm} \equiv M_m L_l$
+\begin{tcolorbox}\textbf{Solution:}
+	Suppose we have vector $\ket{\psi}$ and the measurements defined above. We want to show that performing $L_l$ and $M_m$ is equivalent to performing measurement $N_{lm} \equiv M_m L_l$. Then, perform measurement $L_l$ on $\ket\psi \to \frac{L_l\ket{\psi}}{\sqrt{\braket{\psi|L_l^\dag L_l|\psi}}} \equiv L_l\ket{\psi}$. Perform measurement $M_m$ on $ L_l \ket{\psi} \to \frac{M_m L_l \ket{\psi}} {\sqrt{\braket{\psi|M^\dag_mM_m|\psi}}} \equiv M_m L_l \ket{\psi} \equiv N_{lm}\ket{\psi}$ as desired.
+\end{tcolorbox}
+(2.58) Suppose we prepare a quantum system in an eigenstate $\ket{\psi}$ of some observable $M$, with corresponding eigenvalue $m$. What is the average observed value of $M$ and the standard deviation?
+\begin{tcolorbox}\textbf{Solution:}
+	$E[M] = \braket{\psi|M|\psi} = m \braket{\psi|\psi} = m $, since $M\ket{\psi}= m \ket{\psi}$.
+	Using the identity that $\Delta^2_M = E[M^2] - E[M]^2 = \braket{\psi|M^2|\psi} - m^2 = m^2 \braket{\psi|\psi}  - m^2 = 0$.
+\end{tcolorbox}
+(2.59) Suppose we have qubit in state $\ket{0}$ and we measure the observable $X$. What is the average value of $X$? What is the standard deviation of $X$?
+\begin{tcolorbox}\textbf{Solution:}
+	$$E[X] = \braket{0|X|0} = 0$$
+	Since the Pauli matrices are unitary, $X^2 = I$
+	$$E[X^2] = \braket{0|X^2|0} = \braket{0|I|0} = 1$$
+	$$\iff \Delta_X = 1$$
+\end{tcolorbox}
+(2.60) Show that $v \cdot \sigma$ has eigenvalues $\pm 1$, and that the projectors onto the corresponding eigenspaces are given by $P_{\pm} = \frac{(I \pm v \cdot \sigma)}{2}$
+\begin{tcolorbox}\textbf{Solution:}
+	We convert into matrix form to calculate the eigenvalues.
+	$$v\cdot \sigma = v_1 \sigma_1 + v_2 \sigma_2 + v_3 \sigma_3 \begin{bmatrix} v_3 & v_1 + iv_2 \\ v_1 - iv_2 & -v_3\end{bmatrix}$$
+	$$det(v \cdot \sigma - \lambda) = (\lambda^2 -|v_3|^2) -|v_1|^2 + |v_2|^2 = 0 \iff \lambda^2 = |v_1|^2 + |v_2|^2 + |v_3|^3 = 1 $$
+	$$\iff \lambda = \pm 1.$$
+	Then, we show the projectors are given by $P_\pm = \frac{I\pm v \cdot \sigma}{2}$. Suppose we have eigenvector $\ket{\psi} \iff v \cdot \sigma \ket{\psi} = \ket{\psi}$. Then, $P_+ \ket{\psi} = \frac12(\ket{\psi} + \ket{\psi}) = \ket{\psi}$. Then suppose we have eigenvector $\ket{\psi} \iff v\cdot \sigma \ket{\psi} = -\ket{\psi}$. Then, $P_- \ket{\psi} = \frac12 (\ket{\psi} - (-\ket{\psi})) = \ket{\psi}$. Thus the projector to corresponding eigenspace leaves the eigenvector unchanged as expected.
+\end{tcolorbox}
+
+(2.61) Calculate the probability of obtaining the result $+1$ for measurement of $v \cdot \sigma$ given that the state prior to measurement is $\ket{0}$. What is the state of the system after measurement if $+1$ is obtained?
+\begin{tcolorbox}\textbf{Solution:}
+	$P(+1) = \braket{0|P_+|0} = \frac{1+v_3}{2}$
+	Post measurement state:
+	$\ket{0}' = \frac12((1+v_3)\ket0 + (v_1-iv_2)\ket1)/\sqrt{\frac{1+v+3}{2}}$
+\end{tcolorbox}
 \section{2.2.6 POVM Measurements}
-dog
+(Nielsen 2.62) Show any measurement where the measurement operators and the POVM elements coincide is a projective measurement.
+	\begin{tcolorbox}\textbf{Solution:}
+		\begin{proof}
+		Suppose the measurement operators and the POVM elements coincide.
+		Then, for all $M_m$, $M_m = E_m$. Since $E_m = M^{\dag}_mM_m = M_m$, we have idempotence (prop 1). Then, since $\sum_m E_m = I \iff \sum_m M_m = I$ and therefore we have completeness.\\
+		Then, consider $\sum_m M_m = I \implies M_n \sum_m M_m = M_n$
+		$$ \implies M^2_n + \sum_{m \neq n} M_nM_m  = M_n \iff M^2_n + \sum_{m \neq n} M_nM_m  = M_n$$
+		$$ \sum_{m \neq n} M_n M_m= 0 \iff \sum_{m\neq n} \braket{\psi | M_nM_m | \psi} = 0 $$
+		Since 0 is the sum of all strictly positive operators, it must be that each $M_nM_m$ is zero. Thus we have $M_mM_n = \delta_mn M_m$. Therefore if measurement operators and POVM elements coincide, then it is a projective measurement.
+		\end{proof}
+	\end{tcolorbox}
+(2.63) Suppose a measurement is described by measurement operators $\{M_m\}$. Show there exist unitary operators $U_m$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
+	\begin{tcolorbox}\textbf{Solution:}
+	\begin{proof}
+	Suppose we are given measurement operator $M_m$. Then, using polar composition there exists unitary operator $U$ such that $M_m = U_m J_m$, where $J_m$ is a positive operator. A positive operator always has a positive square root $\iff \exists E_m s.t. J_m = \sqrt{E_m}$, satisfying first condition for POVM (positive).\\
+		See that $M^\dag_m = \sqrt{E_m}^\dag U_m^\dag =  \sqrt{E_m} U_m^\dag $
+		$$\implies M_m^\dag M_m = \sqrt{E_m}U^{\dag}_m U \sqrt{E_m} = {E_m}$$
+		Since $\sum_m M^\dag_m M_M  = \sum_m E_m = I$, the second condition is met.
+		Since $M^\dag_M M_M = E_M \iff p(m) =\braket{\psi|E_m|\psi}$,  satisfying the third condition.
+		Therefore we see a there exists a unitary operator $U$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
+	\end{proof}
+	\end{tcolorbox}
+(2.64) Suppose Bob is given a quantum state chosen from a set $\ket{\psi}, \dots, \ket{\psi_m}$ of linearly independent states. Construct a POVM $\{E_1, E_2, \dots E_{m+1}\}$ such that if outcome $E_i$ occurs, $1 \leq i \leq m$, then Bob must know with certainty that he was given the state $\ket{i}$.
+\begin{tcolorbox}
+	Each $E_i = \ket{\psi_i}\bra{\psi_i}$ for $1 \leq i \leq m$, where $E_{m+1} =  I - \sum_i E_i$. This will yield the probability $1$ when applied to $\ket{\psi_i}$ and $0$ otherwise. We show this meets the criteria for POVM. We see that each $E_i$ is positive semi-definite, since as a projector its only eigenvalues are 0 and 1. We can also clearly see that adding all of the POVM operators equals the identity. 
+	\end{tcolorbox}
 \section{2.2.8 Composite Systems}
-dog
+(2.66) Show the expected value of the observable $X_1Z_2$ for two qubit system measured in state $\frac{\ket{00} + \ket{11}}{\sqrt2}$
+(2.68) Show the state $\ket{\psi} = \frac{1}{\sqrt{2}}\ket{00} + \frac{1}{\sqrt2}\ket{11}$ is entangled.
+		\begin{tcolorbox}\textbf{Solution:}
+		We show the state is entangled by showing that there is no possible $a_0,a_1,b_0,b_1$ such that $\ket{\psi} = (a_0\ket{0} + a_1\ket{1})(b_0\ket{0}+b_1\ket{1})$
+		Suppose we can find valid $a_0,a_1,b_0,b_1$.\\
+		Then, $\frac{1}{\sqrt2}\ket{00} + 1\sqrt{2}\ket{11} = a_0b_0\ket{00} + a_0b_1 \ket{01} + a_1b_0\ket{10} + a_1b_1 \ket{11}$
+		Since $\ket{00},...,\ket{11}$ form a basis for $H^{\otimes2}$, this writing for $\ket{\psi}$ is unique $\iff \frac{1}{\sqrt{2}} = a_0b_0 = a_1b_1$ and $a_0b_1 = a_1b_0 = 0$.
+		Then, we see that:
+		$$a_0b_0 \times a_1b_1 = a_0 a_1 b_0 b_1=\frac12 \neq a_0b_1 \times a_1b_0 = 0$$
+		Therefore there are no valid $a_0,a_1,b_0,b_1$.
+\end{tcolorbox}
 \section{2.3 Superdense Coding}
-dog
+(2.69) Verify the Bell basis forms an orthonormal basis for the two qubit state space.
+\begin{tcolorbox}{Solution:}
+	Trivial, convert to matrix form and perform pairwise dot product and verify norm is 1.
+\end{tcolorbox}
 \section{2.4.2 Density Operator Properties}
-dog
 \section{2.4.3 Reduced Density Operator}
-dog
+\dots Skipping for now, even though these are fun.
 
 \end{document}
