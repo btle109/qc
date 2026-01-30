@@ -174,77 +174,7 @@ Write out an explicit matrix representation for $H^{\otimes2}.$
 	$$U = -i \sum_j \log(e^{i\theta_j} \ket{j}\bra{j}) = -i \sum_j i\theta_j \ket{j}\bra{j} = \sum_j \theta_j\ket{j}\bra{j}$$
 	$$\implies U^\dag = U$$. Therefore $K$ as defined is Hermitian for any unitary $U$. To show that $U = exp(iK),$ multiply both sies by $i$ and apply the exponentiation operator to both sides.
 \end{tcolorbox}
-\section{2.2.3 Quantum Measurement}
-(2.57) Suppose $\{L_l\}$ and $\{ M_m\}$ are two sets of measurement operators. Show that a measurement is defined by the measurement operators $\{ L_l\}$ followed by a measurement defined by the measurement operators $\{ M_m\}$ is physically equivalent to a single measurement defined by measurement operators $\{N_{lm}\}$ where $N_{lm} \equiv M_m L_l$
-\begin{tcolorbox}\textbf{Solution:}
-	Suppose we have vector $\ket{\psi}$ and the measurements defined above. We want to show that performing $L_l$ and $M_m$ is equivalent to performing measurement $N_{lm} \equiv M_m L_l$. Then, perform measurement $L_l$ on $\ket\psi \to \frac{L_l\ket{\psi}}{\sqrt{\braket{\psi|L_l^\dag L_l|\psi}}} \equiv L_l\ket{\psi}$. Perform measurement $M_m$ on $ L_l \ket{\psi} \to \frac{M_m L_l \ket{\psi}} {\sqrt{\braket{\psi|M^\dag_mM_m|\psi}}} \equiv M_m L_l \ket{\psi} \equiv N_{lm}\ket{\psi}$ as desired.
-\end{tcolorbox}
-(2.58) Suppose we prepare a quantum system in an eigenstate $\ket{\psi}$ of some observable $M$, with corresponding eigenvalue $m$. What is the average observed value of $M$ and the standard deviation?
-\begin{tcolorbox}\textbf{Solution:}
-	$E[M] = \braket{\psi|M|\psi} = m \braket{\psi|\psi} = m $, since $M\ket{\psi}= m \ket{\psi}$.
-	Using the identity that $\Delta^2_M = E[M^2] - E[M]^2 = \braket{\psi|M^2|\psi} - m^2 = m^2 \braket{\psi|\psi}  - m^2 = 0$.
-\end{tcolorbox}
-(2.59) Suppose we have qubit in state $\ket{0}$ and we measure the observable $X$. What is the average value of $X$? What is the standard deviation of $X$?
-\begin{tcolorbox}\textbf{Solution:}
-	$$E[X] = \braket{0|X|0} = 0$$
-	Since the Pauli matrices are unitary, $X^2 = I$
-	$$E[X^2] = \braket{0|X^2|0} = \braket{0|I|0} = 1$$
-	$$\iff \Delta_X = 1$$
-\end{tcolorbox}
-(2.60) Show that $v \cdot \sigma$ has eigenvalues $\pm 1$, and that the projectors onto the corresponding eigenspaces are given by $P_{\pm} = \frac{(I \pm v \cdot \sigma)}{2}$
-\begin{tcolorbox}\textbf{Solution:}
-	We convert into matrix form to calculate the eigenvalues.
-	$$v\cdot \sigma = v_1 \sigma_1 + v_2 \sigma_2 + v_3 \sigma_3 \begin{bmatrix} v_3 & v_1 + iv_2 \\ v_1 - iv_2 & -v_3\end{bmatrix}$$
-	$$det(v \cdot \sigma - \lambda) = (\lambda^2 -|v_3|^2) -|v_1|^2 + |v_2|^2 = 0 \iff \lambda^2 = |v_1|^2 + |v_2|^2 + |v_3|^3 = 1 $$
-	$$\iff \lambda = \pm 1.$$
-	Then, we show the projectors are given by $P_\pm = \frac{I\pm v \cdot \sigma}{2}$. Suppose we have eigenvector $\ket{\psi} \iff v \cdot \sigma \ket{\psi} = \ket{\psi}$. Then, $P_+ \ket{\psi} = \frac12(\ket{\psi} + \ket{\psi}) = \ket{\psi}$. Then suppose we have eigenvector $\ket{\psi} \iff v\cdot \sigma \ket{\psi} = -\ket{\psi}$. Then, $P_- \ket{\psi} = \frac12 (\ket{\psi} - (-\ket{\psi})) = \ket{\psi}$. Thus the projector to corresponding eigenspace leaves the eigenvector unchanged as expected.
-\end{tcolorbox}
 
-(2.61) Calculate the probability of obtaining the result $+1$ for measurement of $v \cdot \sigma$ given that the state prior to measurement is $\ket{0}$. What is the state of the system after measurement if $+1$ is obtained?
-\begin{tcolorbox}\textbf{Solution:}
-	$P(+1) = \braket{0|P_+|0} = \frac{1+v_3}{2}$
-	Post measurement state:
-	$\ket{0}' = \frac12((1+v_3)\ket0 + (v_1-iv_2)\ket1)/\sqrt{\frac{1+v+3}{2}}$
-\end{tcolorbox}
-\section{2.2.6 POVM Measurements}
-(Nielsen 2.62) Show any measurement where the measurement operators and the POVM elements coincide is a projective measurement.
-	\begin{tcolorbox}\textbf{Solution:}
-		\begin{proof}
-		Suppose the measurement operators and the POVM elements coincide.
-		Then, for all $M_m$, $M_m = E_m$. Since $E_m = M^{\dag}_mM_m = M_m$, we have idempotence (prop 1). Then, since $\sum_m E_m = I \iff \sum_m M_m = I$ and therefore we have completeness.\\
-		Then, consider $\sum_m M_m = I \implies M_n \sum_m M_m = M_n$
-		$$ \implies M^2_n + \sum_{m \neq n} M_nM_m  = M_n \iff M^2_n + \sum_{m \neq n} M_nM_m  = M_n$$
-		$$ \sum_{m \neq n} M_n M_m= 0 \iff \sum_{m\neq n} \braket{\psi | M_nM_m | \psi} = 0 $$
-		Since 0 is the sum of all strictly positive operators, it must be that each $M_nM_m$ is zero. Thus we have $M_mM_n = \delta_mn M_m$. Therefore if measurement operators and POVM elements coincide, then it is a projective measurement.
-		\end{proof}
-	\end{tcolorbox}
-(2.63) Suppose a measurement is described by measurement operators $\{M_m\}$. Show there exist unitary operators $U_m$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
-	\begin{tcolorbox}\textbf{Solution:}
-	\begin{proof}
-	Suppose we are given measurement operator $M_m$. Then, using polar composition there exists unitary operator $U$ such that $M_m = U_m J_m$, where $J_m$ is a positive operator. A positive operator always has a positive square root $\iff \exists E_m s.t. J_m = \sqrt{E_m}$, satisfying first condition for POVM (positive).\\
-		See that $M^\dag_m = \sqrt{E_m}^\dag U_m^\dag =  \sqrt{E_m} U_m^\dag $
-		$$\implies M_m^\dag M_m = \sqrt{E_m}U^{\dag}_m U \sqrt{E_m} = {E_m}$$
-		Since $\sum_m M^\dag_m M_M  = \sum_m E_m = I$, the second condition is met.
-		Since $M^\dag_M M_M = E_M \iff p(m) =\braket{\psi|E_m|\psi}$,  satisfying the third condition.
-		Therefore we see a there exists a unitary operator $U$ such that $M_m = U_m \sqrt{E_m}$ where $E_m$ is the POVM associated to the measurement.
-	\end{proof}
-	\end{tcolorbox}
-(2.64) Suppose Bob is given a quantum state chosen from a set $\ket{\psi}, \dots, \ket{\psi_m}$ of linearly independent states. Construct a POVM $\{E_1, E_2, \dots E_{m+1}\}$ such that if outcome $E_i$ occurs, $1 \leq i \leq m$, then Bob must know with certainty that he was given the state $\ket{i}$.
-\begin{tcolorbox}
-	Each $E_i = \ket{\psi_i}\bra{\psi_i}$ for $1 \leq i \leq m$, where $E_{m+1} =  I - \sum_i E_i$. This will yield the probability $1$ when applied to $\ket{\psi_i}$ and $0$ otherwise. We show this meets the criteria for POVM. We see that each $E_i$ is positive semi-definite, since as a projector its only eigenvalues are 0 and 1. We can also clearly see that adding all of the POVM operators equals the identity. 
-	\end{tcolorbox}
-\section{2.2.8 Composite Systems}
-(2.66) Show the expected value of the observable $X_1Z_2$ for two qubit system measured in state $\frac{\ket{00} + \ket{11}}{\sqrt2}$
-(2.68) Show the state $\ket{\psi} = \frac{1}{\sqrt{2}}\ket{00} + \frac{1}{\sqrt2}\ket{11}$ is entangled.
-		\begin{tcolorbox}\textbf{Solution:}
-		We show the state is entangled by showing that there is no possible $a_0,a_1,b_0,b_1$ such that $\ket{\psi} = (a_0\ket{0} + a_1\ket{1})(b_0\ket{0}+b_1\ket{1})$
-		Suppose we can find valid $a_0,a_1,b_0,b_1$.\\
-		Then, $\frac{1}{\sqrt2}\ket{00} + 1\sqrt{2}\ket{11} = a_0b_0\ket{00} + a_0b_1 \ket{01} + a_1b_0\ket{10} + a_1b_1 \ket{11}$
-		Since $\ket{00},...,\ket{11}$ form a basis for $H^{\otimes2}$, this writing for $\ket{\psi}$ is unique $\iff \frac{1}{\sqrt{2}} = a_0b_0 = a_1b_1$ and $a_0b_1 = a_1b_0 = 0$.
-		Then, we see that:
-		$$a_0b_0 \times a_1b_1 = a_0 a_1 b_0 b_1=\frac12 \neq a_0b_1 \times a_1b_0 = 0$$
-		Therefore there are no valid $a_0,a_1,b_0,b_1$.
-\end{tcolorbox}
 \section{2.3 Superdense Coding}
 (2.69) Verify the Bell basis forms an orthonormal basis for the two qubit state space.
 \begin{tcolorbox}{Solution:}
