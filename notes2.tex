@@ -68,8 +68,10 @@ Express the Hadamard gate $H$ as a product of $R_x$ and $R_z$ rotations and $e^{
 \begin{tcolorbox}\textbf{Exercise 4.7:}
 	Show that $XYX = -Y$ and use this to prove $XR_y(\theta)X = R_y(-\theta)$.
 	$$XYX = \begin{bmatrix} 0 & 1 \\ 1 & 0\end{bmatrix} \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 1 & 0\end{bmatrix} = \begin{bmatrix} 0 & 1 \\ 1 & 0\end{bmatrix}\begin{bmatrix} -i& 0 \\ 0 & i \end{bmatrix}=\begin{bmatrix}0 & i \\ -i & 0\end{bmatrix} = -Y$$
+	We also can use prop. of X,Y anticommuting.
+	We know$XY=-YX \iff XYX = -YXX = -Y$.
 	Let $x =\frac{\theta}{2}$. As we see, multiplying left and right by $X$ swaps the rows, then the columns.
-	$$\iff XR_y(\theta)X = \begin{bmatrix} \cos x & \sin x \\ -\sin x & \cos x\end{bmatrix} = \cos x I + i \sin x Y = R_y(\theta)$$
+	$$\iff XR_y(\theta)X = \begin{bmatrix} \cos x & \sin x \\ -\sin x & \cos x\end{bmatrix} = \cos x I + i \sin x Y = R_y(-\theta)$$
 \end{tcolorbox}
 \begin{tcolorbox}\textbf{Exercise 4.8:} An arbitrary single qubit unitary operator can be written in the form
 	$$U = \text{exp}(i\alpha)R_{\hat{n}}(\theta)$$
@@ -81,6 +83,70 @@ Express the Hadamard gate $H$ as a product of $R_x$ and $R_z$ rotations and $e^{
 	$$\iff \vec{v} = -\frac{\vec{v}\theta}{2|\vec{v}|} \iff \theta = -2|\vec{v}| \iff \vec{v} = -\frac{\theta\vec{n}}{2} $$
 	Substituting into our expression for $H = \alpha I + \vec{v} \cdot \sigma = \alpha I - \frac{\theta\vec{n}}{2}$
 	$$\iff U = e^{iH} = e^{i(\alpha I - \frac{\theta \vec{n \cdot \sigma}}{2})} = e^{i\alpha} e^{-i\frac{\theta n \cdot \sigma}{2}} = e^{i \alpha} R_{\hat{n}}{(\theta)}$$
-	We showed previously that the phase gate $\begin{bmatrix} 1 & 0 \\ 0 & i\end{bmatrix} = e^{i\frac{\pi}{4}}R_z(\frac{\pi}{4})$ and the equivalence regarding the Hadamard gate.
+	We showed previously that the phase gate $\begin{bmatrix} 1 & 0 \\ 0 & i\end{bmatrix} = e^{i\frac{\pi}{4}}R_z(\frac{\pi}{4})$.\\
+For the Hadamard gate, our intuition shows us that the H gate is a rotation around vector $\hat{n} = (\frac{1}{\sqrt{2}}, 0 , \frac{1}{\sqrt{2}})$ of magnitude $\frac{\pi}{2}$. 
 \end{tcolorbox}
+Theorem 4.1 (ZY Decomposition for a single qubit) Suppose $U$ is a unitary operation on one qubit. Then, we can find $\alpha, \beta, \gamma, \delta$ such that:
+$$U = e^{i\alpha} R_{z}(\beta) R_y(\gamma) R_z(\delta)$$.
+$$U = \begin{bmatrix} e^{i(\alpha - \beta/2 - \delta/2)} \cos \frac{\gamma}{2} & -e^{i(\alpha - \beta/2 - \delta/2)} \sin \frac{\gamma}{2} \\ e^{\alpha + \beta/2 + \delta/2} \sin \frac{\gamma}{2}  & e^{i(\alpha + \beta/2 + \delta/2)} \cos \frac{\gamma}{2} \end{bmatrix}$$
+\begin{tcolorbox}\textbf{Exercise 4.9} Explain why any single qubit unitary may be written in the form in the theorem.\\
+	Suppose we have arbitrary unitary $U = \begin{bmatrix} a & b \\ c & d\end{bmatrix}$. We see that $U^\dag U = I$ and $UU^\dag = I$ imply that $|a|^2 + |c|^2 = 1, |b|^2 +|d|^2 = 1, |a|^2 + |b|^2 = 1, |b|^2 + |d|^2 =1$.\\
+	We can satisfy this when $a \equiv d,b \equiv c$. For some complex number $z = re^{i\theta}$, we see that $|z_1|^2 + |z_2|^2 =1 \iff r_1^2 + r^2_2 = 1 \iff r_1 = \cos\theta, r_2 = \sin \theta$. Thus we see that $a = e^{i\theta_a} \cos \theta, b =e^{i\theta_b} \sin \theta$.\\
+	Thus we have $$ U = \begin{bmatrix} e^{i\theta_a} \cos\theta & e^{i \theta_b} \sin \theta \\ e^{i\theta_c} \sin\theta &e^{i\theta_d} \cos\theta \end{bmatrix}$$. Since the columns of a unitary matrix are orthonormal, it must be that $$e^{i(\theta_a - \theta_b)} \cos\theta \sin\theta + e^{i (\theta_c - \theta_d)} \cos\theta \sin\theta = 0 \iff e^{i(\theta_a - \theta_b)} + e^{i(\theta_c - \theta_d)}= 0$$
+	$$\iff \theta_a - \theta_b = \theta_c - \theta_d + \pi$$
+	Choose $\theta_a = \alpha - \frac{\beta}{2} - \frac{\delta}{2}, \theta_c = \alpha + \frac{\beta}{2} - \frac{\delta}{2}, \theta_d = \alpha + \frac{\beta}{2} + \frac{\delta}{2}$. Choose $\theta = \frac{\gamma}{2}$.
+	We can solve for $\theta_b$ and see that:
+	$$\alpha - \frac{\beta}{2} - \frac{\delta}{2} - \theta_c + \theta_d - \pi = \theta_b$$
+	$$\iff \theta_b = \alpha - \frac{\beta}{2} + \frac{\delta}{2} - \pi$$
+	$$\iff e^{i\theta_b} = e^{-i\pi} e^{i(\alpha - \frac{\beta}{2} + \frac{\delta}{2})} = - e^{i(\alpha - \frac{\beta}{2} + \frac{\delta}{2})} $$
+	Thus we see $U$ can be represented as in the theorem.
+
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.10} (X-Y Decomposition of Rotations) Give a decomposition analogous to Theorem 4.1 but using $R_x$ instead of $R_z$. \\
+	We can write any arbitrary unitary $U$ as $U= HVH^\dag$ (define $V = H^\dag UH$). Then, decompose $V$ using $ZY$ decomposition. 
+	$$U = HVH = e^{i\alpha} H(R_z(\beta)R_y(\gamma)R_z(\delta))H$$
+	$$= e^{i\alpha} HR_z(\beta)H HR_y(\gamma)H HR_z(\delta)H$$
+	Then, we see that $HR_z(\beta)H = R_x(\beta), HR_y (\gamma)H = R_y(-\gamma)$, which is easy to verify from the Euler decomposition of complex number.
+	$$= e^{i\alpha} R_x(\beta) R_y(-\gamma) R_x(\delta)$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.11} Suppose $\hat{m}, \hat{n}$ are non-parallel real unit vectors in three dimensions. Use Thm. 4.1 to show an arbitrary single qubit $U$ may be written as $U = e^{i\alpha} R_{\hat{n}}(\beta) R_{\hat{m}} R_{\hat{n}}(\delta)$\\
+	Consider unitary operator $V$ such that $VZV^\dag = \hat{n} \cdot \sigma$.We can represent any unitary $U$ as $U = VWV^\dag$ for unitary $W = V^\dag U V$. Using Thm 4.1 on W,  we see that
+	$$U = e^{i\alpha}V(R_z(\beta) R_y (\gamma) R_z(\delta))V = e^{i\alpha} R_{\hat{n}}(\theta') VR_y (\phi')V^\dag R_{\hat{n}} (\tau')$$
+	Suppose $VyV^\dag = \hat{k}$. Then, we see that since $y$ is perpendicular to $z$, the unitary transformation $V$ (preserves angles), it must be that $k$ is perpendicular to $\hat{n}$. Since $\hat{m}$ is not parallel to $\hat{n}$, it can be decomposed into a component parallel and a component perpendicular (along $k$).
+	$$= e^{i\alpha} R_{\hat{n}}(\theta) R_{\hat{m}} (\phi) R_{\hat{n}}(\tau)$$
+\end{tcolorbox}
+Corollary 4.2: Suppose $U$ is a unitary gate on a single qubit. Then, there exists unitary operators $A,B,C$ on a single qubit such that $ABC = I$, $U = e^{o\alpha} AXBXC$ where $\alpha$ is some overall phase factor.\\
+Set $A \equiv R_z(\beta)R_y(\gamma/2), B\equiv R_y(-\gamma/2)R_z(-\frac{\delta+\beta}{2}), C \equiv R_z(\frac{\delta-\beta}{2})$ for $ZY$ decomposition of $U = R_z(\beta) R_y(\gamma) R_z(\delta)$
+\begin{tcolorbox}\textbf{Exercise 4.12} Give A,B,C and $\alpha$ for the Hadamard gate.\\
+	We can find from the $ZY$ decomposition of $H$ that $U = e^{i\frac{\pi}{2}} R_z(\pi) R_y(\frac{\pi}{2})$. These values can be easily derived by solving a system of equation for $\alpha, \beta, \delta$ in the $ZY$ decomposition. \\
+	Thus we have $\alpha = \frac{\pi}{2}, \beta = \pi, \delta =0, \gamma = \frac{\pi}{2}$
+	$$\iff A= R_z(\pi)R_y(\frac{\pi}{4}), B = R_y(-\frac{\pi}{4})R_z(\frac{\pi}{2}), C = R_z(\frac{\pi}{2})$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.13 (Circuit identities)} Prove the identites:
+	$$HXH = Z, HYH = -Y, HZH = X$$
+The first two are easily shown by matrix multiplication.\\
+The third can beshown using the first. We see that $HXH = Z \iff HHXHH = HZH \iff X = HZH$.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.14} Show $HTH = R_x(\frac{\pi}{4})$\\
+	We have previously shown that $T = R_z(\frac{\pi}{4})$.
+	$$HZH = X \iff HR_z(\frac{\pi}{4})H = R_x(\frac{\pi}{4})$$
+\end{tcolorbox}
+
+\begin{tcolorbox}\textbf{Exercise 4.15 (Composition of single qubit operations)} \begin{enumerate}
+	\item Prove that if a rotation through an angle $\beta_1$ about axis $\hat{n_1}$ is followed by a rotation $\beta_2$ through $\hat{n}_2$ then the overall rotation through an angle $\beta_{12}$ about axis $\hat{n}_{12}$ given by:
+		$$c_{12} = c_1 c_2 - s_1 s_2 \hat{n_1} \cdot \hat{n_2}$$
+	$$s_{12} \hat{n}_{12} = s_1c_2 \hat{n_1} + c_1 s_2 \hat{n_2} - s_1 s_2 \hat{n_2} \times \hat{n_1}$$
+	where $c_i = \cos (\beta_i/2), s_i = \sin(\beta_i/2), c_{12} = \cos(\beta_{12}/2), s_{12} = \sin(\beta_{12}/2)$.\\
+	We see that $R_{\hat{n_i}}(\beta_i) = c_i I + i s_i (\hat{n_1} \cdot \sigma)$
+	$$\iff R_{\hat{n_2}}(\beta_2) R_{\hat{n_1}}(\beta_1) = (c_2 I + is_2(\hat{n_2} \cdot \sigma))(c_1 I + is_1(\hat{n_1} \cdot \sigma))$$
+	$$ = c_1c_2 I + i s_1c_2 (\hat{n_1} \cdot \sigma) + i c_1s_2 (\hat{n_2} \cdot \sigma) - s_1s_2 (\hat{n_1} \cdot \sigma)(\hat{n_2} \cdot \sigma)$$
+	Using property that $(a \cdot \sigma)(b\cdot \sigma) = (a \cdot b)I + i (a \times b)$,
+	$$ = c_1c_2 I = is_1c_2 (\hat{n_1} \cdot \sigma) + i c_1s_2 (\hat{n_2} \cdot \sigma) - s_1s_2 ((n_2 \cdot n_1)I + i(n_2 \times n_1) \cdot \sigma)$$
+	Grouping real/imaginary parts, we see
+	$$(c_1c_2 - s_1s_2 (\hat{n_2} \cdot \hat{n_1})) + i(s_1c_2 \hat{n_1} + s_2c_1 \hat{n_2} - s_1s_2 (n_2 \times n_1)) \cdot \sigma$$
+\item It is clear to see that $\beta_1 = \beta_2$ and $\hat{n_1} = \hat{z}$ that the equations simplify to what is in the textbook.
+\end{enumerate}
+\end{tcolorbox}
+
 \end{document}
+
