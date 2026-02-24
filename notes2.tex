@@ -148,5 +148,120 @@ The third can beshown using the first. We see that $HXH = Z \iff HHXHH = HZH \if
 \end{enumerate}
 \end{tcolorbox}
 
+\section{Controlled Operations}
+A controlled operation has some form if $A$, then $B$. For example, if qubit $A$ is true, then do something to qubit $B$. Generally,
+$$\ket{c}\ket{t} \to \ket{c} U^c \ket{t}$$ 
+The circuit has a square with the gate and then a line connecting it to the other qubit and a solid dot. Sorry not gonna put picture.
+\begin{tcolorbox}\textbf{Exercise 4.16:}
+	The $4\times4$ unitary matrix for the following circuits?\\
+	$$I\otimes H, H\otimes I$$.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.17:}
+	Construct $CNOT$ from $Controlled-Z$ and two Hadamard gates.\\
+	$$(I \otimes H)(CZ)(I \otimes H)$$
+	where the first bit is the control bit.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.18:} Show that controlled $Z$ gate for two qubits is same for either control bit.\\
+	Both have the equivalent actions on the basis states for $H^{4}$.
+	\begin{align*}
+		\ket{00} \mapsto \ket{00}\\
+		\ket{01} \mapsto \ket{01}\\
+		\ket{10} \mapsto \ket{10}\\
+		\ket{11} \mapsto -\ket{11}
+	\end{align*}
+\end{tcolorbox}
+To implement some arbitrary controlled operation $U$, we use the decoposition into $U = e^{i\alpha }AXBXC$ (see the corollary 4.2) in single qubit operations. First we apply controlled phase shift $e^{i\alpha}$, which is equivalent to $C-S \equiv \begin{bmatrix}1 & 0 \\ 0 & e^{i\alpha }\end{bmatrix} \otimes I$.\\
+To implemenet $U=e^{i\alpha}AXBXBC$, since $ABC = I$, if the control qubit is set, apply the $X$ gates, if not it will only trigger $ABC$ and nothing will happen.\\
+For multiple qubits: consider we have $n+k$ qubits and $U$ is a $k$ qubit unitary operator, then we have controlled operation $$C^n(U)\ket{x_1x_2\dots x_n} \ket{\psi} = \ket{x_1x_2\dots x_n}U^{x_1 x_2\dots x_n}\ket{\psi}$$ where $x_1x_2\dots x_n$ is product of bits $x_1, x_2, \dots, x_n$ since all need to be 1 to apply unitary operator $U$. \\
+Another useful tool is to decompose $U$ into unitary $V$ s.t. $V^2 = U$. Ex. if second control bit, apply V. If first control bit, flip second control bit. If second control bit, apply $V^\dag$. If first bit, flip second bit. If first bit, apply $V$. 
+Circuit identities, C is $CNOT$ with qubit 1 control qubit 2 target:
+\begin{align}
+	CX_1C = X_1 X_2\\
+	CY_1C = Y_1 X_2\\
+	C Z_1 C = Z_1 \\
+	C X_2 C = X_2 \\
+	C Y_2 C = Z_1 Y_2 \\
+	C Z_2 C = Z_1 Z_2\\
+	R_{z,1} C = C R_{z,1}\\
+	R_{x,2}C = C R_{x,2} 
+\end{align}
+ask about 4.28
+
+\section{Measurement}
+Two principles: measurement can be moved to the end of the circuit always. If the mesurement results are used, then the classically controlled operations can be replaced by quantum. WLOG, any unterminated quantum wired are measured.
+\begin{tcolorbox}\textbf{Exercise 4.32} Suppose $\rho$ is the density matrix describing a two qubit system. Suppose we perform a projective measurement in the computational basis of the second qubit. Let $P_0 = \ket{0} \bra{0}$ and $P_1 = \ket{1}\bra{1}$ be the projectors to the $\ket{0}, \ket1$ states of the second qubit. Let $\rho'$ be the density matrix assigned by an observer who did not learn measurement.\\
+	Intuition: post measurement state for density op is:
+	$$\rho' = \frac{M_m \rho M^\dag_m}{tr(M^\dag_m M_m \rho)}$$
+	Remember partial trace is:
+	$$tr_B(\ket{a_1}\bra{a_2} \otimes \ket{b_1} \bra{b_2}) \equiv \ket{a_1} \ket{a_2} tr(\ket{b_1}\bra{b_2})$$
+\end{tcolorbox}
+\section{Universal quantum gates}
+A set of gates is universal for computation if any unitary operation may be approximated to arbitrary accuracy by a quantum circuit using these gates. We eventually prove any unitary can be approximated using Hadamard, phase, CNOT, and $\pi/8$ gate. The proof is in three phases.\\
+\textbf{Two-level unitary gates are universal}\\
+	Consider unitary matrix $U$ on $d-$dimensional Hilbert space. A two-level unitary is one that acts non-trivially only on two or fewer fector components. For example, consider
+	$$V = \begin{bmatrix}  a & b & 0 \\ c & d & 0 \\ 0 & 0 & 1\end{bmatrix}$$
+	Consider the case where $U$ is three dimensional.\\
+	$$\begin{bmatrix} a & d & g \\ b & e & h \\ c & f & j\end{bmatrix}$$
+	We show that there exists unitary matrices $U_1, U_2, U_3$ such that
+	$$U_3U_2 U_1 U = I \implies U = U^\dag_1 U_2^\dag U_3^\dag$$
+	We use the procedure setting each to values depending on a,b,.... It is a formula.\\
+	More generally suppose $U$ acts on a $d-$dimensional space. Then, we can find two-level unitary $U_1, \dots, U_{d-1}$ such that $U_{d-1}U_{d_2}\dots U_1 U$ has a one in the top left hand corner and zeroes elsewhere. We repeat this procedure for $d-1$ by $d-1$ unitary submatrix so that $U = V_1 \dots V_k$. where $V_i$ are two level unitary matrices and $k \leq (d-1) + (d-2) + \dots + 1 = \frac{d(d-1)}{2}$.\\
+	Essentially, for $a$ in the top corner and $b$ at the point you are trying to eliminate (and let $d = \sqrt{|a|^2 + |b|^2}$) you just have $\frac{a*}{d}$ in the top left of whatever square (so if I am trying to eliminate third column, it would be the corners of a 3x3), $\frac{-a}{d}$ bottom right, then $\frac{b}{d}$ bottom left, $\frac{b*}{d}$ top right.
+	\begin{tcolorbox}\textbf{Exercise 4.37:}
+		Provide a decomposition of $U = \frac12 \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\1 & -1 & 1 & -1 \\ 1 & -i & -1 & i\end{bmatrix}$\\
+		First we reduce to the elements on the first row/col. We see that if we set:
+		$$U_1 = \begin{bmatrix} \frac{1}{\sqrt2} & \frac{1}{\sqrt2} & 0 & 0 \\ \frac{1}{\sqrt2} & \frac{1}{-\sqrt2} & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}, U_2 = \begin{bmatrix} \frac{\sqrt2}{\sqrt3} & 0 & \frac{1}{\sqrt3} & 0  \\ 0 & 1 & 0 & 0 \\\frac{1}{\sqrt3} & 0 &  \frac{-\sqrt2}{\sqrt3} & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}$$
+		$$U_3 = \begin{bmatrix} \frac{\sqrt3}{2} & 0 & 0 & \frac12 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ \frac12 & 0 & 0 & \frac{-\sqrt3}{\sqrt2}\end{bmatrix}$$
+		We see that $U_3 U_2 U_1 U = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & \frac{(1-i)\sqrt2}{4} & \frac{\sqrt2}{2} & \frac{(1+i)\sqrt2}{4} \\ 0 & \frac{(3+i)\sqrt6}{12} & \frac{-\sqrt6}{6} & \frac{(3-i)\sqrt6}{12} \\ 0 & \frac{i \sqrt3}{3} & \frac{\sqrt3}{3} & \frac{-i\sqrt3}{3}\end{bmatrix}$.
+		We then decompose the $3\times3$ submatrix by finding $V_{1}, V_{2}, V_{3}$ in an identical manner such that $ V_3 V_2 V_1 U_S= I$, giving $6 =(d-1) + (d-2) + 1$ submatrices.  
+\end{tcolorbox}
+
+\textbf{Single qubit and CNOT gates are universal.}\\
+We show single qubit gates and CNOT can implement any arbitrary two-level unitary. We show using Gray codes, a sequence of binary numbers starting with $s$ and ending with $t$ where at each step one number is changed. For instance:
+$$101001 \to 101011 \to  100011\to 110011$$
+Suppose we want to implement $U$, a two-level unitary matrix that acts on a space spanned by $s,t$ with submatrix $U'$, a $2\times2$ unitary submatrix of $U$. Let $g_1$ through $g_m$ be the elements of the Gray code, where $g_1 = s, g_m = t$. We perform $U$ by changing states $\ket{g_1} \to \ket{g_2} \to \dots \to \ket{g_{m-1}}$ and then we perform a controlled $U'$ on the target qubit located at the single bit where $g_{m-1}$ and $g_m$ differ, and then undoing the Gray code trasnformation.
+Dafuq
+\\
+\textbf{Universality of Hadamard + Phase + CNOT + $\frac{\pi}{8}$ gate}\\
+First we show an important result with the regarding the error bound of simulating a quantum gate. Suppose we have operator $U$ that we seek to implement and operator $V$ which is an approximation of $U$. We define the error:
+$$E(U,V) \equiv \text{max}_{\ket{\psi}} ||(U-V)\ket{\psi}||$$
+Suppose we have POVM elements $M$, where $P_U, P_V$ then is the probability of obtaining outcome $M$ after performing $U,V$. Then we can see that
+	\begin{align*}|P_U - P_V| &= |\braket{\psi|U^\dag M U |\psi} - \braket{\psi|V^\dag M V|\psi}|\\
+		\intertext{Define $\ket{\Delta} \equiv (U-V)\ket{\psi}$. Then using the fact that $U= V + U -V, -V^\dag = (U-V)^\dag + U^\dag$:}
+		&= |\braket{\psi |U^\dag M(U-V+ V)|\psi} - \braket{-(U^\dag + (U^\dag - V^\dag)MV)}|\\
+		&= |\braket{\psi |U^\dag M| \Delta} + \braket{\psi|U^\dag M V|\psi} - \braket{\psi | U^\dag MV|\psi}+  \braket{\Delta|MV|\psi}|\\
+		&= |\braket{\psi |U^\dag M| \Delta} +  \braket{\Delta|MV|\psi}|\\		& \leq |\braket{\psi |U^\dag M| \Delta}| + | \braket{\Delta|MV|\psi}|\\
+		\intertext{By Cauchy-Schwarz inequality,}
+		& \leq ||\ket{\psi}|| || U^\dag M \ket{\Delta}|| + ||\ket{\Delta}|| || MV \ket{\psi}||\\
+		& = \braket{\Delta|M^\dag UU^\dag M|\Delta} + ||\ket{\Delta}||\braket{\psi|V^\dag M^\dag M V |\psi}\\
+		& = ||\ket{\Delta}|| + ||\ket{\Delta}||\\
+		&\leq 2E(U,V)
+\end{align*}
+We can use this important result to show with minimal difficuly via induction that:
+$$E(U_m U_{m-1} \dots U_1, V_m V_{m-1}\dots V_1 \leq \sum^m_{j-1} E(U_j, V_j)$$\\
+Then, using $T = R_z(\frac{\pi}{4}), HTH = R_x(\frac{\pi}{4})$ we compose the two rotations to:
+$$[\cos \frac{\pi}{8} I - i \sin \frac{\pi}{8}Z][ \cos \frac{\pi}{8} I - i \sin \frac{\pi}{8}X]$$
+$$= \cos^2 \frac{\pi}{8} I - i \sin \frac{\pi}{8} \cos \frac{\pi}{8} Z  -i \sin \frac{\pi}{8} \cos \frac{\pi}{8} X - sin^2 \frac{\pi}{8} ZX$$
+Using $ZX = -iY$,
+$$  \cos^2 \frac{\pi}{8} I - i \sin \frac{\pi}{8} \cos \frac{\pi}{8} Z  -i \sin \frac{\pi}{8} \cos \frac{\pi}{8} X -i \sin^2 \frac{\pi}{8}Y $$
+$$ = \cos^2 \frac{\pi}{8}I  -i(\cos \frac{\pi}{8}(X+Z) + \sin \frac{\pi}{8} Y) \sin\frac{\pi}{8}$$
+$$ = \cos(\theta/2) - i \sin \frac{\pi}{8}(\vec{n} \cdot \sigma)$$
+where $\vec{n} = (\cos \frac{\pi}{8}, \sin \frac{\pi}{8}, \cos \frac{\pi}{8})$, $\cos (\theta/2) = \cos^2 (\frac{\pi}{8})$.
+Alternatively we can use the result of problem $4.14$ to simplify the composition. We see that only using Hadmard and $\frac{\pi}{8}$ gates, we can construct some arbitrary $R_\frac{n} (\theta)$. It is possible to show that $\theta$ is an irrational multiple of $2\pi$. No idea how, sounds hard.\\
+We then show we can use $R_n(\theta)$ to approximate any $R_n (\alpha)$.\\
+Choose $\delta > 0$, and fix $N \in \mathbb{Z}, N > \frac{2\pi}{\delta}$. Define $\theta_k \in [0, 2\pi), \theta_k = k\theta \text{mod} \frac{2}{\pi}$. The fuck. Its like a limit but relies on multiple of $2\pi$ being irrational.
+$$E(R_n(\alpha), R_n(\theta)^n) < \frac{\epsilon}{3}$$ 
+My proof for the exercise is pretty sketch. Write it out, use exponential.\\
+Then, see that $H R_{\hat{n}} H = R_{\hat{m}} (\alpha)$ where $\hat{m}$ is unit vector with direction $(\cos \frac{\pi}{8}, - \sin \frac{\pi}{8}, \cos \frac{\pi}{8})$. Then, we can approximate any $R_{\hat{m}} (\alpha)$ with $n$ rotations of $R_{\hat{m}}(\theta)$
+$$E(R_m(\alpha), R_m(\theta)^n) < \frac{\epsilon}{3}$$
+By exercise 4.11, we can decompose any unitary $U$ into $\hat{n},\hat{m}$ rotations.
+Thus we can see that for any unitary $U$, we can find $n_1, n_2, n_3$ such that:
+$$E(U, R_n(\theta)^{n_1} H R_n(\theta)^{n_2}H R_n(\theta)^{n_3}) < \epsilon$$ where as we showed earlier $R_n = T HTH$.\\
+\textbf{Conclusion:}\\
+We just showed that we can approximate any single qubit unitary $U$ with $T, H$ gates. We earlier showed that any two-level unitary can be performed using $CNOT$ gates and single qubit operations (via Gray codes). Then, we showed before any unitary can be decomposed into product of two level unitaries.
+Thus:
+$$ U = U_1 \dots U_{k}$$
+$$U_i \equiv CNOT, \text{single qubit}$$
+$$ \text{single qubit} \approx \text{H,T}$$
 \end{document}
 
