@@ -15,5 +15,527 @@
 \maketitle
 \vspace{-2cm}
 \tableofcontents
-\section*{Quantum Simulation}
+\section{Quantum Simulation}
+There are possible advantanges to using quantum computing to solve problems of simulation, largely due to a classical requirement of performing an exponential number of calculations (ex. differential equations).
+\begin{tcolorbox}\textbf{Exercise 4.46} Let $\rho$ be a density matrix describing a state of $n$ qubits. Show that describing $\rho$ requires $4^n - 1$ independent real numbers.\\
+	Consider $\rho$ with $n$ qubits. Then, $\rho$ is a $2^n \times 2^n$ matrix. Since $\rho$ is Hermitian, we only need $\frac{4^n - 2^n}{2}$ complex numbers to describe off-diagonal elements $\implies 4^n - 2^n$ real numbers. Then, since there are $2^n$ elements on the diagonal, we can use the fact that $\sum_i \rho_ii = 1 \implies $ we need $2^n - 1$ elements to describe the diagonal.
+	$$\iff 4^n - 2^n + 2^n -  1 = 4^n - 1$$
+\end{tcolorbox}
+First we verify the solution to the time-independent Schrodinger equation (quick review of differential equations). Naturally initial condition is that at $t = 0, \ket{\psi(0)}$.
+\begin{align*}
+	i \frac{d\ket{\psi}}{dt} &= H \ket{\psi}\\
+	\frac{1}{\ket{\psi} }d \ket{\psi} &= -iH dt\\
+	\intertext{Integrating both sides,}
+					  &\iff \text{ln} \ket{\psi} = -iHt + C\\
+					  &\iff \ket{\psi(t)} = ce^{-iHt}
+	\intertext{By the initial condition,}
+					  &\iff \ket{\psi(0)} = ce^0 = c\\
+					&\iff \ket{\psi(t)} = e^{-iHt}\ket{\psi(0)}
+\end{align*}
+A first order linear approximation (ex. $y(t + \delta t) = y(t) + \frac{dy}{dt} \delta t$) is generally insufficient. Instead, we express Hamiltonian as a sum over local interactions.
+$$H = \sum^L_{k=1} H_k$$
+Each $e^{-iH_kt}$ acts on a smaller subsystem and is easier to approximate, but they must commute to treat them like straightforward sum.
+\begin{tcolorbox}\textbf{Exercise 4.47} For $H = \sum_k^L H_k$ prove that $e^{-iHt} = e^{-iH_1t} \dots e^{-iH_lt}$ for all $t$ if $[H_j, H_k] = 0$ for all $j,k$.\\
+	Suppose the commutator is zero for all $j,k$. Then, the matrices commute:
+	$$e^{-iH_1t}\dots e^{-iH_L t} = e^{-it \sum_k^L H_k} = e^{-iHt}$$
+\end{tcolorbox}
+The next crucial element is the Trotter formula. The proof is kind of complicated but just recall the binomial theorem and also the Taylor expansion of $e^x$ which are as follows:
+$$e^x = \sum_k^\infty \frac{x^k}{k!}, (x+y)^n = \sum^n_{k=0} \binom{n}{k} x_{n-k}y_k$$
+The Trotter formula is as follows:
+$$\lim_{n\to\infty} (e^{iAt/n} e^{iBt/n})^n = e^{i(A+B)t}$$
+Other useful formulas include:
+$$e^{i(A+B)\Delta t} = e^{iA \Delta t} e^{i B \Delta t} + O(\Delta t^2)$$
+$$e^{i(A+B)\Delta t} = e^{i A \Delta t/2} e^{iB \Delta t}e^{iA \Delta t/2} + O(\Delta t^3)$$
+\newpage
+\subsection{Simulation Algorithm}
+Consider inputs $H = \sum_k H_k$ acting on $N$ dimensional system, which each $H_K$ acting on a smaller subsystem. An initial state $\ket{\psi_0}, t=0$. An accuracy $\delta > 0$, and $t_f$ (final time).\\
+Then, the algorithm proceeds as follows:
+\begin{enumerate}
+	\item Initialize $\ket{\tilde{\psi}}$ of $n = \text{poly}(\log N)$ qubits and operators $e^{-iH_k \Delta t}$. 
+	\item Select approximation method (for instance, choosing $U_{\Delta t} = e^{-iH_1 \Delta t/j}\dots e^{-iH_k \Delta t/j} $ using Trotter formula or $U_{\Delta t j} = e^{-iH_j \Delta t}$ using the second approximation.)
+	\item Choose $j$ and $\Delta t$ such that depending on approximation method (since some have different errors rates ex. second has $O(\Delta t^2)$, third has $O(\Delta t^3)$. $j, \Delta t$ determine our "step size", since $j \Delta t = t_f$. 
+
+	\item Construct circuit: For $i \in 0\dots j$:
+		\begin{enumerate}
+			\item $ \ket{\psi_i} \to \ket{\tilde{\psi}_i}$
+			\item $\ket{\tilde{\psi}_{i+1}} = U_{\Delta t} \ket{\tilde{\psi}_i}$
+			\item $i++;$
+		\end{enumerate}
+	\item Return $\ket{\tilde{\psi}_i}$
+\end{enumerate}
+Our output is $\ket{\tilde{\psi}_j} = \ket{\tilde{\psi}(t_f)}$, our estimation of $\ket{\psi(t_f)}$.
+Ask Sawyer to explain runtime for simulation algorithm (where does O(poly($\frac{1}{\delta}$)) come from?) (Ans: It comes from the error bound that we are aboutto prove! You can show algebraically fairly easily.)
+\begin{tcolorbox}\textbf{Exercise 4.49 (Baker-Campbell-Hausdorf formula)}\\
+	Prove that:
+	$$e^{(A+B)\Delta t} = e^{A \Delta t} e^{B \Delta t}e^{-\frac12 [A,B] \Delta t^2} + O(\Delta t^3)$$
+	and prove the two other useful formulas.
+	\begin{proof}
+		We prove using Taylor expansions.\\
+		\begin{align*} 
+			e^{(A+B)\Delta t} &= I + (A+B)\Delta t + \frac{(A+B)^2\Delta t^2}{2} + O(\Delta t^3)\\
+				&= I + (A+B)\Delta t + \frac{(A^2 + B^2 + AB + BA)\Delta t^2}{2} + O(\Delta t^3)\\
+			e^{A\Delta t}e^{B \Delta t} &= I + (A + B) \Delta t + \frac{(A^2 + B^2 + 2AB)\Delta t^2}{2} + O(\Delta t^3)\\
+			e^{A\Delta t}e^{B \Delta t}e^{-\frac12[A,B]\Delta t^2} &=  I + (A + B) \Delta t + \frac{(A^2 + B^2 + 2AB)\Delta t^2}{2} - \frac{(AB-BA)\Delta t^2}{2} +  O(\Delta t^3)\\  
+  &= I + (A + B) \Delta t + \frac{(A^2 + B^2 + AB +BA)\Delta t^2}{2} + O(\Delta t^3)
+		\end{align*}
+		As desired.\\
+		We see immediately that the second approximation formula is true since $O(\Delta t^2) = \frac12(A^2 + B^2 + AB +BA)\Delta t^2  + O(\Delta t^3)$.
+	\end{proof}
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 4.50:} Let $H = \sum_L^K H_k$ and define
+	$$U_{\Delta t} = [e^{-iH_1 \Delta t} \dots e^{-i H_L \Delta t}][ e^{-i H_L \Delta t} \dots e^{-iH_1 \Delta t}]$$
+	\begin{enumerate}
+		\item Prove that $U_{\Delta t} = e^{-2i H \Delta t} + O(\Delta t^3)$
+		\item Use the results in box 4.1 (ex. $E(U_m U_{m-1} \dots U_1, V_m V_{m-1} \dots V_1) \leq \sum^m_{j=1} E(U_j, V_j)$) to show that for some positive integer $m$:
+			$$E(U^m_{\Delta t}, e^{-2miH\Delta t}) \leq m \alpha \Delta t^3$$
+		\begin{proof}
+		Using the second approximation formula, $[e^{-iH_1 \Delta t} \dots e^{-i H_L \Delta t}] = [ e^{-i H_L \Delta t} \dots e^{-iH_1 \Delta t}] = e^{-iH\Delta t} + O(\Delta t^2)$\\
+			We see that
+			$$e^{-iH\Delta t} = I - iH\Delta t - \frac12 H^2\Delta t^2 + O(\Delta t^2)$$
+			$$\implies [e^{-iH\Delta t}] [e^{-iH \Delta t}]  + O(\Delta t^2) = I - 2iH\Delta t - 2H^2 \Delta t^2 + O(\Delta t^3) $$
+			$$=e^{-2iH\Delta t} + O(\Delta t^3)$$
+		\end{proof}
+		We then show that $E(U^m_{\Delta t}, e^{-2miH\Delta t}) \leq m\alpha \Delta t^3$ for some $m \in \mathbb{N}$.
+		\begin{proof}
+			By the result of box 4.1,
+			$$E(U^m_{\Delta t}, e^{-2miH\Delta t}) \leq \sum^m_{j=1} E(U_{\Delta t}, e^{-2iH \Delta t}) $$
+		Then, $E(U^j_{\Delta t}, e^{-2jiH\Delta t})=  \text{max} ||(O(\Delta t^3)\ket{\psi}|| \leq a \Delta t^3$, choose $a$ such that $ a = c \Delta t^3 |M|$. Since this is independent of $j$, we see that:
+		$$\sum^m_j E(U_{\Delta t}, e^{-2i H\Delta t}) \leq m \alpha  \Delta t^3$$
+		\end{proof}
+	\end{enumerate}
+\end{tcolorbox}
+\section{The Quantum Fourier Transform}
+Consider the discrete Fourier transform, which takes as input a vector of complex numbers, $x_0, \dots, x_{N-1}$ where length $N$ is a fixed parameter, outputing $y_0 \dots y_{N-1}$ defined by:
+$$y_k \equiv \frac{1}{\sqrt{N}} \sum^{N-1}_{j=0} x_j e^{2\pi ijk/N}$$
+The quantum formula transform is identical. Consider orthonormal basis: $\ket0, \dots, \ket{N-1}$. The QFT acts as follows:
+$$\ket{j}\to \frac{1}{\sqrt{N}} \sum^{N-1}_{k=0} e^{2\pi i jk/ N} \ket{k}.$$
+Think of it this way: a quantum state is a wavefunction. The QFT transforms the amplitudes to amplitudes corresponding to the DFT (a func. of frequency instead of time). Thus we have:
+$$\ket{\psi} = \sum^{N-1}_{j=0} x_j \ket{j} \to \sum^{N-1}_{k=0} y_k \ket{k}$$
+\begin{tcolorbox}\textbf{Exercise 5.1:} Give a direct proof that the QFT is unitary.\\
+	We can define a matrix for the quantum Fourier transform:
+	$$QFT = \frac{1}{\sqrt N}\sum_j (\sum_{k} e^{2\pi i jk/N} \ket{k})\bra{j}$$
+	$$QFT^\dag = \sum_j \ket{j} (\frac{1}{\sqrt{N}} \sum^{N-1}_{k=0} e^{-2\pi ijk/N}\bra{k}) $$
+	$$\iff (QFT^\dag)QFT = \frac{1}{N} \sum_j \ket{j} (\sum_{k=0} e^{-2\pi ijk/N}\bra{k}) \sum_u (\sum_{v} e^{2\pi i u v/N} \ket{v})\bra{u} $$
+	$$=\frac{1}{N}\sum_{u,j} \ket{j}(\sum_{v,k} e^{2\pi i(uv - jk)/N}\braket{k|v})\bra{u}$$
+	By orthonormality of $k,v$:
+	$$=\frac{1}{N}\sum_{u,j} \ket{l}(\sum_{k} e^{2\pi ik(u - j)/N})\bra{u}$$
+	If $u = j$, $$\sum^{N-1}_{k=0} e^{2\pi ik(u - j)/N}  = \sum^{N-1}_{k=0} = N$$
+	Observe that $\sum e^{2\pi(u-j)k}$ is a geometric series $ = \frac{1-e^{2 \pi i(u-j)}}{1-e^{2\pi i(u-j)/N}}$. If $u \neq j,$ then $e^{2\pi i k(u-j)}= e^{2 \pi i m}= 1 \implies$ the geometric sum is zero, $m \in \mathbb{Z}$.  
+Therefore we see that:
+$$=\frac{1}{N}\sum_{u,j} \ket{j}(\sum_{k} e^{2\pi ik(u - k)/N})\bra{u}$$
+the middle term is zero when $u\neq j$ and is $N$ when $u = j \iff$ the middle term is equal to $N\delta_{uj}$
+$$=\frac{1}{N}\sum_{u,j} \ket{j} N\delta_{uj} \bra{u} = \sum_u \ket{u}\bra{u} = I$$
+
+
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.2} Compute the Fourier transform of the $n$ qubit state: $\ket{00\dots0}$.\\
+	For an $n$ qubit state, $N-1 = 2^n - 1$. 
+	$$\ket{00\dots0} = \frac{1}{\sqrt{2^n}} \sum_{k=0} e^{2\pi i (0) k/ N} \ket{k} = \frac{1}{\sqrt{2^n}}\sum_k \ket{k}$$
+	$$=\frac{1}{\sqrt{2^n}} \begin{bmatrix}1\\1\\ \vdots \\ 1\end{bmatrix}$$
+\end{tcolorbox}
+
+Generally as we have shown $N=2^n$ where $n$ is the number of qubits and the basis $\ket0 \dots \ket{2^{n-1}}$. We then can write out state $j$ in binary representation: $j = j_1j_2\dots j_n = j_1(2^{n-1} + j_2(2^{n-2}) + \dots + j_n 2^0)$.Similarly, $0.j_l j_{l+1} \dots j_m$ represents binary fraction $j_{l/2} + j_{l+1} + \dots + j_m / 2^{m-l+1}$. We then can define the product representation:
+\begin{align*}
+	\ket{j} &\to \frac{1}{2^{n/2}} \sum^{2^n-1}_{k=0} e^{2\pi i j k/2^n} \ket{k}\\
+		&= \frac{1}{2^{n/2}} \sum^1_{k_1=0}\dots \sum^1_{k_n= 0} e^{2\pi ij \sum^n_l k_l 2^{-l}}\ket{k_1\dots k_n}\\
+		&= \frac{1}{2^{n/2}} \sum^1_{k_1=0}\dots \sum^1_{k_n= 0} \bigotimes^n_{l=1} e^{2\pi ij \sum^n_l k_l 2^{-l}}\ket{k}\\
+		&= \frac{1}{2^{n/2}} \bigotimes^n_{l=1} [\sum^1_{k_l = 0} e^{2\pi i jk_l 2^{-l}} \ket{k_l}]\\
+		&= \frac{1}{2^{n/2}} \bigotimes^n_{l=1} [\ket0 + e^{2\pi i j 2^{-l}}\ket{1}]\\
+		&= \fbox{$\frac{1}{2^{n/2}}(\ket0 + e^{2\pi i 0.j_n }\ket1)(\ket0 + e^{2\pi 0.j_{n-1}j_n}\ket1)\dots(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n} \ket1)$}
+\end{align*}
+Cleanly:
+$$\fbox{$\ket{j_1,\dots,j_n} \mapsto \frac{1}{2^{n/2}}(\ket0 + e^{2\pi i 0.j_n }\ket1)(\ket0 + e^{2\pi 0.j_{n-1}j_n}\ket1)\dots(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n} \ket1)$}$$
+We now move onto building a circuit for the QFT.\\
+
+Consider gate $R_k$:
+$$R_k \equiv \begin{bmatrix} 1&0\\0&e^{2\pi i /2^k}\end{bmatrix}$$
+To apply the $QFT$ on $\ket{j_i}$ for $1\leq i \leq n$ apply Hadamard and then controlled $R_j, j $ from $2,n-i+1$ if $2 \leq n-i+1$ gates controlled on the $jth$ qubit. More simply we have this action on one qubit:
+$$\ket{j_1 \dots j_n} \to H\ket{j_1} \otimes \ket{j_2\dots j_n} \to (R_2\dots R_n)H \ket{j_1} \otimes \ket{j_2\dots j_n}$$
+Tensored with the action on the rest of the qubits ($H$ and $R_k$) we get the QFT.
+\begin{tcolorbox}\textbf{QFT Walkthrough}
+More explicitly:
+For state $\ket{j_1\dots j_n}$
+$$H\ket{j_1} \otimes \ket{j_2 \dots j_n} = \frac{1}{2^{1/2}}(\ket0 + e^{2\pi i 0.j_1} \ket1) \ket{j_2\dots j_n}$$
+It is clear this is equivalent to std. Hadamard since, if $j_1 = 0$ the sign of $\ket1$ is positive, if $j_1 = 1, e^{\pi i} = -1 \implies $ sign of $\ket1$ is negative. Applying controlled $R_2$ gate (controlled on $j_2$) yields:
+$$\frac{1}{2^{1/2}}(\ket0 + e^{2\pi i 0.j_1j_2})\ket{j_2 \dots j_n}$$
+since controlled $R_k$ on bit $j_k$ has action of $\frac{1}{\sqrt2}\ket0+\ket{1} \to \frac{1}{\sqrt2}\ket0 + e^{2\pi i 0....j_k}\ket1$.
+Then, applying the rest of controlled $R_k$ operations yields:
+$$= \frac{1}{2^{1/2}}(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n})\ket{j_2 \dots j_n}$$
+Then apply Hadamard to the second qubit.
+$$= \frac{1}{2^{2/2}}(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n}) (\ket0 + e^{2\pi i 0.j_2} \ket1)\ket{j_3\dots j_n}$$
+Apply $R_3 \dots R_n$:
+$$= \frac{1}{2^{2/2}}(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n}) (\ket0 + e^{2\pi i 0.j_2j_3\dots j_n} \ket1)\ket{j_3\dots j_n}$$
+Repeating to the $n$th qubit yields:
+$$= \frac{1}{2^{n/2}}(\ket0 + e^{2\pi i 0.j_1j_2\dots j_n}) (\ket0 + e^{2\pi i 0.j_2j_3\dots j_n} \ket1) \dots (\ket0 + e^{2\pi i 0.j_n} \ket1)  $$
+which is the product state definition of QFT as defined above.
+\end{tcolorbox}
+\begin{figure}
+	\centering
+	\includegraphics[width =1.25\linewidth]{qft.png}
+	\caption{Circuit for QFT as described above}
+\end{figure}
+I am generally opposed to putting photos in my notes (see for example the garbage qubit op. notes that would have been great with some photos), but this one's a big one.
+Concrete example is you can simulate $R_k$ using $S,T$. We see that for the $i$th qubit, it takes $n-i$ rotation gates and $1$ Hadamard gate $\implies n+(n-1)+\dots+1 = (n(n+1))/2$ gates, along with $n/2$ swap gates $=3n/2$ CNOT gates. Therefore we have a $\Theta(n^2)$ algorithm for performing the quantum Fourier transform, which in theory is REALLY fast since classical FFT is runtime of $\Theta(n 2^n)$ (exponential!). Unfortunately it actually has a lot of barriers to actually being useful. We can't access the amplitudes in a quantum computer so we have no way of accessing the transformed state. We also can't efficiently prepare the state to be transformed. 
+\begin{tcolorbox}\textbf{Exercise 5.3: (Classical FFT)} Suppose we wish to perform a Fourier transform of a vector containing $2^n$ complex numbers on a classical computer. Verify that the straightforward method for performing the Fourier transform based on direct evaluation of requires $\Theta(2^{2n})$ operations. Find a method to reduce to $\Theta(n 2^n)$.\\
+	To perform the classical Fourier transform we transform elements of list $x_0 \dots x_{2^n}$, $y_k \equiv \frac{1}{2^{n/2}} \sum^{2^n}_{k=0} x_j e^{2\pi ijk / N}$. Thus for each $2^n$ element, we perform $2^n$ multiplications giving a total runtime of $\Theta(2^{2n})$. \\
+	For FFT, divide and conquer(?) look up Cooley-Tukey FFT
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.4:} Give a decomposition of the controlled $R_k$ gate into single qubit and CNOT gates.\\
+We can decompose (see ex. 4.8) $$R_k = e^{i\frac{\pi}{2^{k}}} R_z(\frac{2\pi}{2^k}) = e^{i \frac{\pi}{2^k}} \begin{bmatrix}e^{-i\frac{\pi}{2^k}} & 0 \\ 0 & e^{\frac{\pi i}{2^k}}\end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & e^{\frac{2\pi i}{2^k}}\end{bmatrix}$$
+We can implement the phase shift $\begin{bmatrix} e^{i\pi /2^k} & 0 \\ 0 & e^{i \pi / 2^k}\end{bmatrix}$ on the target qubit as $\begin{bmatrix} 1 & 0 \\ 0 & e^{\frac{i\pi}{2^k}}\end{bmatrix} = R_{k+1}$ on the control qubit.\\
+Then, using the fact that $XZX = -Z \implies X R_z(\theta) X = R_z (-\theta)$ we can determine that we have:
+$$U = e^{i\alpha} AXBXC$$
+where $A = R_z(\frac{\pi}{2^k}), B = R_z(-\frac{\pi}{2^k}), C = I$. We can see that $ABC = I$ and $AXBXC = R_z(\frac{2\pi}{2^k})$. Then we see that:
+$$R_z(\frac{i\pi}{2^k}) = \begin{bmatrix}e^{\frac{-i\pi}{2^{k+1}}} & 0 \\ 0& e^{\frac{i\pi}{2^{k+1}}}\end{bmatrix}= e^{-i\pi/2^{k+1}} \begin{bmatrix}1& 0 \\ 0& e^{\frac{i\pi}{2^{k}}}\end{bmatrix} = e^{-i\pi /2^{k+1}} R_{k+1} $$
+$$R_z(-i\frac{\pi}{2^k}) = \begin{bmatrix}e^{i\frac{\pi}{2^{k+1}}} & 0 \\ 0& e^{-\frac{i\pi}{2^{k+1}}}\end{bmatrix}= e^{i\pi/2^{k+1}} \begin{bmatrix}1& 0 \\ 0& e^{-i\frac{\pi}{2^{k}}}\end{bmatrix} = e^{i\pi /2^{k+1}} R^\dag_{k+1} $$
+Since the additional phase factors cancel out, we can express the $U$ as:
+$$U = e^{\frac{i\pi}{2^k}} R_{k+1}XR^\dag_{k+1}X I$$
+Thus we the circuit is:
+$$-------|-----|-R_{k+1}--$$
+$$---R_{k+1}-x--R_{k+1}-x-----$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.5:} Give a quantum circuit to perform the inverse quantum Fourier transform.\\
+Do each of the computations in the reverse order; on the $j_1$ qubit, perform $R^\dag_n, \dots R^\dag_2$ then Hadamard gate, \dots,on the $j_{n-1}$ qubit, perform $R^\dag_2$ and then Hadamard. On the $j_n$ qubit, perform Hadamard.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.6 (Approximate quantum Fourier transform)} Let $U$ be the ideal quantum Fourier transform on $n$ qubits and $V$ be the transform which results if the controlled $R_k$ gates are performed to a precision $\Delta = 1/p(n)$ for some polynomial $p(n)$. Show that error $E(U,V) = max_{\ket{\psi}} ||(U-V)\ket{\psi}||$ scales as $\Theta(n^2/p(n))$.\\
+	Since there are $n^2 R_k$ gates, it must be then that the total difference between $U,V$ is $n^2 \Delta$. Then, we see that:
+	$$E(U,V) = max_{\ket{\psi}} ||n^2\Delta \ket{\psi}|| = |n^2 \Delta| ||\ket{\psi}|| = |n^2 \Delta|$$
+	Thus the error is entirely a function of $n^2 \Delta \implies E(U,V) = \Theta(n^2 \Delta) = \Theta(n^2/p(n))$.
+\end{tcolorbox}
+\section{Phase Estimation}
+Phase estimation is an algorithm we can use to estimate the eigenvalues of some unitary operator $U$. We do need a black box/Oracle unfortunately which limits the usefulness. The blackbox should be able to prepare state $\ket{u}$ (eigenvector) and do controlled-$U^{2j}$.\\
+We use two registers, the first has $t$  qubits in state $\ket{0}$ (we chooes $t$ based on accuracy and probability of success). The second register has $\ket{u}$ with as many necessary qubits.\\
+We apply Hadamard gate onto the first $t$ qubits. Then, on the $k$th qubit, we use that qubit as a control qubit to perform operation $U^{2^{k-1}}$ on $U$. Since this results in $U^m\ket{u} = e^{2\pi i (m \phi)} \ket u$ (which is a phase shift!) applied to the qubits $\ket{u}$, the phenomenon of phase kickback (aka the phase shift "moving up" to the control qubit) changes the $i$th control qubit to:
+$$\ket0 \to_H \frac{1}{\sqrt2}\ket0 + \ket1 \to \frac{1}{\sqrt2}\ket0 + e^{2\pi i (2^{k-1}\phi)}\ket1$$
+$$\ket{u} \to_{U^{2^{k-1}}} e^{2\pi i (2^{k-1} \phi)}\ket{u}$$
+\begin{tcolorbox}\textbf{Exercise 5.7} Show the action of the circuit is to take $\ket{j}\ket{u} \to \ket{j}U^j \ket{u}$.\\
+	This is clear based on definition of controlled operation.
+\end{tcolorbox}
+We can see that the result of the first half of the algorithm on the $t$ qubits is:
+$$\frac{1}{2^{t/2}} (\ket{0} + e^{2\pi i 2^{t-1}\phi}\ket{1})\dots(\ket0 + e^{2\pi i 2^0 \phi}\ket1)$$
+$$= \frac{1}{2^{t/2}} \sum^{2^t-1}_{k=0} e^{2\pi i \phi k}\ket{k}$$
+We can express $\phi = 0.\phi_1 \dots \phi_t$ since the integer component of $\phi$ is irrelevant since $e^{i2\pi k} = e^{i2\pi}$ for $k \in \mathbb{Z}$. Then, the powers of 2 act as bit-shifting and since we can repeatedly ignore the integer components:
+$$=\frac{1}{2^{t/2}}(\ket 0 + e^{2\pi i 0.\phi_t}\ket1)\dots(\ket0 + e^{2\pi i 0.\phi_1\dots\phi_t}\ket1)$$
+We then perform the inverse quantum Fourier transform before measuring the first register. Applying the inverse quantum Fourier transform as one can see from the definition of product-state QFT yields state:
+$\ket{\phi_1 \dots \phi_t}$. A measurement in the computational basis then gives us $\phi$.
+The inv. Fourier transform acts as follows:
+$$\frac{1}{2^{t/2}} \sum^{2^t-1}_{j=0} e^{2\pi i \phi j} \ket{j} \ket{u}\to \ket{\tilde{\phi}}\ket{u}$$
+Our analysis of the performance and requirements yields the following:
+Suppose $b$ is a $t$-digit approximation. Suppose $m$ is the final measurement outcome.
+Through some tough work we can see that:
+$$p(|m-b| > e) \leq \frac{1}{2(e-1)} \implies, e=2^{t-n} -1$$
+$$\implies p(|\phi_{error}| < e) \geq 1 - \frac{1}{2(2^p-2)}$$
+where $t=n+p = n + [log (2 + \frac{1}{2\epsilon})]$.
+\begin{tcolorbox}\textbf{Exercise 5.8} Suppose the phase estimation algorithm takes $\ket0 \ket{u}$ to the state $\ket{\tilde{\phi_u}}\ket{u}$ so that given input $\ket0 (\sum_u c_u \ket{u})$ the algorithm outputs $\sum_u c_u \ket{\tilde{\phi}_u} \ket{u}$. Show that if $t$ is chosen according to the rule above, then the probability for measuring $\phi_u$ accurate to $n$ bits at the conclusion of phase estimation is at least $|c_u|^2(1-\epsilon)$.\\
+	\textbf{Solution:}
+	The probability of measuring state $\ket{u}$ when we measure the first register is given by $|c_u|^2$ (Born rule). If we choose $t$ the way prescribed above, we get that the  
+	$$ p(|\phi_{u (error)}| < e) = 1 - \epsilon$$
+	$$\iff P(|\phi_{u(error)}| < e \cap u_{obsv} ) \geq |c_u|^2 (1-\epsilon)$$
+\end{tcolorbox}
+
+\begin{figure}
+	\centering
+	\includegraphics[width =0.75\linewidth]{htest.png}
+	\caption{Hadamard Test}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width =0.75\linewidth]{pse.png}
+	\caption{1 qubit phase estimation, 1,-1}
+\end{figure}
+\begin{tcolorbox}\textbf{Exercise 5.9} Design a circuit for collapsing $U$ to eigenspace. Its eigenvalues are 1,-1:
+	Eigenvalues of $1,-1 \implies \phi = 0, \frac{1}{2} \implies t=1$. 
+	It is easy to see that for $t=1, QFT^\dag = H$. It is then evident that the 1 qubit phase estimation for eigenvalues of $1,-1$ is equivalent to Hadamard test. We then show the Hadamard test behaves as expected. \\
+	The system begins in system $\ket{0}\ket{\psi}$. Applying the Hadamard to the first qubit yields:
+	$$\ket0\ket{\psi} \xrightarrow[H]{} \frac{1}{\sqrt2} (\ket0 \ket{\psi} + \ket1 \ket{\psi})$$
+	Then, we can decompose $\ket{\psi} = c_1 \ket{u} + c_2 \ket{v}$ where $\ket{u}, \ket{v}$ are eigenvectors of $U$. Applying the $C_1(U)$ gate:
+	$$= \frac{1}{\sqrt2} (\ket{0}(c_1 \ket{u} +c_2\ket{v}) + \ket1(c_1 \ket{u} + c_2{v}))$$
+	$$\xrightarrow[C_1(U)]{}  \frac{1}{\sqrt2}  (\ket{0}(c_1 \ket{u} +c_2\ket{v}) + \ket1 U(c_1 \ket{u} + c_2{v})) $$
+	Since $\ket{u}$ is an eigenvector corresponding to eigenvalue $1$, and $\ket{v}$ is an eigenvector corresponding to eigenvalue $-1$: 
+	$$ = \frac{1}{\sqrt2}  (\ket{0}(c_1 \ket{u} +c_2\ket{v}) + \ket{1}(c_1 \ket{u} - c_2\ket{v})) $$
+	Applying the second $H$ gate to the first qubit:
+	$$= \frac12 ((\ket{0}+\ket1)(c_1 \ket{u} +c_2\ket{v}) + (\ket0-\ket{1})(c_1 \ket{u} - c_2 \ket{v}))$$
+	$$= \frac12(c_1\ket{0u} + c_2 \ket{0v} + c_1\ket{1u} + c_2\ket{1v} + c_1\ket{0u} -c_2\ket{0v} -c_1\ket{1u} + c_2\ket{1v})$$
+	$$=\frac12(2c_1\ket{0u} + c_2 \ket{1v})$$
+	$$=c_1 \ket{0}\ket{u} + c_2 \ket{1}\ket{v}$$
+	Applying measurement in computational basis to the first qubit yields $\frac{\ket{u}}{|\ket{u}|}$ (collapsing to positive eigenspace) with probability $|c_1|^2$ and $\frac{\ket{v}}{|\ket{v}|}$ (collapsing to negative eigenspace) with probability $|c_2|^2$.
+	  \end{tcolorbox}
+\newpage
+\subsection{Phase Estimation Algorithm:}
+Consier a blackbox that performs controlled-$U^j$ operations (for $j \in \mathbb{Z}$) and an eigenstate $\ket{u}$ of $U$ with eigenvalue $e^{2\pi i \phi u}$ and $t= n + \text{ceil}(\log(2+\frac{1}{2\epsilon}))$ qubits initialized to zero. The output is an $n$ bit approximation $\tilde{\phi}$ of $\phi$.
+\begin{enumerate}
+	\item Initialize: $\ket{0}\ket{u}$
+	\item Apply Hadamard gates to $n$ qubits: $\xrightarrow[H_j]{} \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t-1} \ket{j}\ket{u}$
+	\item Apply $2^j$ controlled operations on $u$, with $j$th bit as control bit: $\xrightarrow[C^j(U)]{} \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t-1} \ket{j} U^j \ket{u}$
+	\item $= \frac{1}{\sqrt{2^t}} \sum^{2^t-1}_{j} e^{2\pi i j \phi_u}\ket{j}\ket{u}$
+	\item Perform inverse quantum Fourier transform: $\xrightarrow[QFT^\dag]{} \ket{\tilde{\phi_u}}\ket{u}$
+	\item Measure the first register, yielding $\tilde{\phi_u}$
+\end{enumerate}
+The runtime (clear to see from the image) is $O(t^2)$ and one call to controlled $U^j$, with success probability $1-\epsilon$.
+\section{Order-finding}
+Consider coprime $x, N, x<N$. The $order$ of $x\mod N$ is the least positive integer $r$ such that
+$$x^r \equiv 1(\mod N) \iff x^r - 1 = Nk, k \in \mathbb{Z}$$
+\textbf{Bezout's Identity:} For integers a,b: $GCD(a,b) = ax + by, x,y \in \mathbb{Z}$.\\
+textbf{Corollary A4.4}: Let $n$ be an integer greater than 1. An integer $a$ has a multiplicative inverse mod $n$ if and only if $gcd(a,n) = 1$, that is, $a$ and $n$ are coprime.
+\begin{tcolorbox}\textbf{Exercise 5.10} Show the order of $x=5 \mod N = 21$ is 6.\\
+\textbf{Solution:}
+$$5^6 - 1 = 21k, k=744$$
+Thus we have ver:ified that the congruence holds. It is not difficult to check it is the smallest by verifying that 1,2,3,4,5 are invalid.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.11} Show that the order of $x$ satisfies $r\leq N$.\\
+\textbf{Solution:}\\
+Consider list $x^0, x^1, \dots x^{N} \mod N$. There are $N$ possible values which are $0, \dots, N-1$. Since it is a list of length $N+1$, it must be that there exists some $n,m$ such that $x^n = x^m \mod N$. Suppose $n>m$. Then, since $x,N$ are coprime there exists a unique inverse for $x$. Take $(x^{-1})^m = x^{-m}$. 
+$$x^n \equiv x^m \mod N$$
+$$x^n x^{-m} \equiv x^m x^{-m} \mod N$$
+$$x^{n-m} \equiv 1 \mod N$$
+Choose $r = n-m$. Since $n>m, 0 < r \leq N$. 
+\end{tcolorbox}
+The quantum algorithm for order-finding is phase estimation algorithm applied to unitary operator (for $0 \leq y \leq N-1$):
+	$$U\ket{y} \equiv \ket{xy(\bmod N)}$$
+	$$\ket{y} \mapsto \ket{xy (\bmod N)}$$
+	$$U = \sum_{y}\ket{xy(\bmod N)}\bra{y}$$
+We can see that the eigenvector of $U$ is:
+$$\ket{u_s} = \frac{1}{\sqrt{r}} \sum^{r-1}_{k=0} e^{\frac{-2\pi i sk}{r}} \ket{x^k\bmod N}$$
+$$U \ket{u_s} = \frac{1}{\sqrt{r}} \sum^{r-1}_{k=0} e^{-2\pi isk/r} \ket{x^{k+1}\bmod N}$$
+Let $j=k+1, k=j-1:$
+$$=\frac{1}{\sqrt{r}} \sum^{r}_{j=1} e^{\frac{-2\pi is (j-1)}{r}} \ket{x^j \bmod N} =\frac{1}{\sqrt{r}} e^{2\pi is/r} \sum^{r}_{j=1} e^{\frac{-2\pi is j}{r}} \ket{x^j \bmod N}$$
+$$= e^{\frac{-2\pi isj}{r}} \ket{u_s}$$
+\begin{tcolorbox}\textbf{Exercise 5.12} Show that $U$ is unitary.\\
+	From the definition, we can see that: $$U^\dag = \sum_v \ket{v} \bra{xv(\bmod N)}$$
+	$$\implies U^\dag U = \sum_{v,w} \ket{v} \braket{xv(\bmod N) | xw (\bmod N)} \bra{w}$$
+	If $xv \equiv xw \mod N \iff \braket{xv(\bmod N) | xw (\bmod N)} = 1$, we see that:
+	$$N| xv-xw \iff N| x(v-w)$$
+	Since $N,x$ are coprime, it must be that (by corollary A4.4) that $x$ has multiplicative inverse $\mod N$. Multiply both sides by $x^{-1}$. Then,
+	$$N|v-w \iff v \equiv w \mod N$$
+	Since $v,w < N, v \equiv w \mod N \implies v=w$.\\
+	We have shown that if $xv \equiv xw (\mod N) \implies v=w$ for coprime $x,N$ and $v,w < N$.
+	It is also trivial to see that $v=w \implies xv \equiv xw (\mod N)$.
+	Thus we see that $xv \equiv xw (\mod N) \iff v=w$
+	$$\iff \braket{xv (\bmod N) | xw (\bmod N)} = \delta_{vw}$$
+	$$U^\dag U = \sum_{v,w} \delta_{vw} \ket{v}\ket{w} = \sum_{v} \ket{v}\bra{v}= I$$
+\end{tcolorbox}
+Recall for phase estimation we need an oracle to do controlled $U^{2^j}$ operation for any integer $j$ and we must bea ble to prepare eigenstate $\ket{u_s}$ with nontrivial eigenvalue. We do the first with modular exponentiation which we can implement controlled-$U^{2^j}$ using $O(L^3)$ gates.\\
+It is difficult to know $\ket{u}$ but we can put them all in uniform superposition which happens to hilariously enough be equal to $\ket{1}$.
+$$\frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \ket{u_s} = \ket{1}$$
+Then, we get a good estimation of phase $\phi \approx s/r$ at the end of the phase estimation. 
+\begin{tcolorbox}\textbf{Exercise 5.13:} Prove (5.44) (Hint: $\sum_{s=0}^{r-1} exp(-2\pi i sk/r) = r \delta_{k0}$). In fact, prove that:
+	$$\frac{1}{\sqrt{r}} \sum^{r-1}_{s=0} e^{2\pi isk/r} \ket{u_s} = \ket{x^k \bmod N}$$
+\textbf{Solution:}\\
+First we prove (5.44), showing that the superposition is equal to $\ket{1}$.
+$$\frac{1}{\sqrt{r}} \sum^{r-1}_{s=0}\ket{u_s} = \frac{1}{r} \sum^{r-1}_{s=0} \sum^{r-1}_{k=0} e^{2\pi isk/r}\ket{x^k \mod N}$$
+$$= \frac{1}{r} \sum^{r-1}_{k=0} \sum^{r-1}_{s=0} e^{2\pi isk/r}\ket{x^k \mod N} $$
+$$= \sum^{r-1}_{k=0} \delta_{k0} \ket{x^k \mod N}$$
+$$= \ket{x^0 \mod N} = \ket{1}$$
+Then we show the other equality:
+$$\frac{1}{\sqrt{r}} \sum^{r-1}_{s=0} e^{2\pi isl/r} \ket{u_s} = \frac{1}{r} \sum^{r-1}_{k=0} \sum^{r-1}_{s=0}e^{-2\pi is(k-l)/r}\ket{x^k \mod N}$$
+$$= \sum^{r-1}_{k=0} \delta_{kl} \ket{x^k \mod N}  = \ket{x^k \mod N}$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.14} The quantum state produced in the order-finding algorithm before hte inverse Fourier transform is:
+	$$\ket{\psi} = \sum_{j=0}^{2^t-1} \ket{j} U^j \ket{1} = \sum_{j=0}^{2^t-1} \ket{j} \ket{x^j \text{mod} N}$$
+	if we initialize the second register as $\ket{1}$. Show the same state is obtained if we replace $U^j$ with a different unitary transform $V$ which acts:
+	$$ V\ket{j}\ket{k} = \ket{j} \ket{k+x^j \text{mod }N}$$
+	Show how to construct $V$ using $O(L)$ gates.
+	\textbf{Solution:}\\
+	$$\sum_{j} V\ket{j}\ket{0} = \ket{j}\ket{x^j \bmod N}$$ 
+	as desired.
+	To compute, you pretty much just do a billion controlled multiplication gates? somewhere control on $j$ and then add to $k$.
+\end{tcolorbox}
+The next key to our algorithm is the continued fraction expansion:
+\textit{Theorem 5.1}: Suppose $\frac{s}{r}$ is a rational number such that:
+$$|\frac{s}{r} - \phi| \leq \frac{1}{2r^2}$$
+Then $s/r$ is a convergent of the continued fraction for $\phi$ and thus can be computed in $O(L^3)$ operations using continued fractions algorithm.
+Since $\phi$ is an approximation of $s/r$ up to $2L+1$ bits, 
+$$|\frac{s}{r}-\phi| \leq 2^{-2L-1} \leq \frac{1}{2r^2}$$ since $r \leq N \leq 2^L$. Essentially, the continued fractions algorithm efficiently produces numbers $s', r'$ with no common factor such that $s'/r' = s/r$.  If $x^{r'} \bmod N = 1$ then $r'$ is the order!. It can fail if phase estimation fails (with prob $\epsilon$) or if $s,r$ have a common factor. The continued fractiosn stuff is kind of neat but not that relevant, it can be computed in $O(L^3)$.\\
+Overall we get a $O(L^3)$  (remebmer $L = ceil(\log N)$).
+\subsection{Quantum order-finding}
+Consider inputs: a black box $U_{x,n}$ which perform the transformation $\ket{j}\ket{k} \to \ket{j}\ket{x^j k \bmod N}$ for $x$ coprime to $L$ bit number $N$, $t = 2L + 1 + ceil(log(2+\frac{1}{2\epsilon}))$ qubits initialized to $\ket0$ and and $L$ qubits initialized to $\ket{1}$.\\
+The output is the smallest integer $r>0$ such that $x^r \equiv 1 \pmod{N}$ (which is the order).\\
+Runtime: $O(L^3)$.\\
+\begin{enumerate}
+	\item Initialize $\ket{0}\ket{1}$.
+	\item Apply Hadamards to each qubit in first register: $\xrightarrow[H^{\otimes j}]{} \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t-1} \ket{j}\ket{1}$.
+	\item Apply $U_{x,n}, \xrightarrow[U_{x,n}]{} \ket{j}\ket{x^j \bmod N}$
+		$$ \approx \frac{1}{\sqrt{r2^t}} \sum^{r-1}_{s=0} \sum^{2^t-1}_{j=0}\ket{j}\ket{u_s}$$
+	\item Apply iQFT, $\xrightarrow[iQFT]{} \frac{1}{\sqrt{r}} \sum_{s=0} \ket{\tilde{s/r}} \ket{u_s}$
+	\item Measure first register $\to \tilde{\frac{s}{r}}$
+	\item Use continued fractions $\to r$.
+\end{enumerate}
+\section{Factoring, Shor's algorithm}
+This is the big one guys. It turns out order-finding is factoring.\\
+We use these two theorems to reduce order-finding to factoring:\\
+\textit{Theorem 5.2:} Suppose $N$ is an $L$ bit composite number and $x$ is a non-trivial solution to the equation $x^2 \equiv 1 \pmod{N}$ in the range $1\leq x \leq N$, which is that NEITHER $x \equiv 1 \pmod{N}$ nor $x = N-1 \equiv -1 \pmod{N}$. Then, at least one of gcd($x\pm1, N$) is a non-trivial factor of $N$ that can be computed in $O(L^3)$ operations.
+\begin{tcolorbox}\textbf{Elaboration:}\\
+	Consider $x^2 \equiv 1 \pmod{N} \iff N | (x^2-1) \iff N | (x+1)(x-1)$. We also now that neither $N| x-1$ nor $N|x+1$. 
+Then, since $N$ divides the product of $x-1, x+1$ but not them individually it must then be that $N$ has a common factor with one or the other. Since $x-1 < x+1 < N$, the common factor is not $N$, we can use Euclid's algorithm to compute $gcd(x-1, N)$ and $gcd(x+1, N)$ and thus obtain a non-trivial factor of $N$. There will be some more notes on the appendices later.\\
+\textbf{Example:}\\
+A solution to $x^2 \equiv 1 \pmod{15}$ is $x=1,4,11$. We discard $x=1$. Then, we see that $(4+1)(4-1) \equiv 0 \pmod{15}$ and $(11+1)(11-1) \equiv 0 \pmod{15}$. We check:
+$$gcd(5,15) = 5, gcd (3, 15) = 3$$
+$$gcd(12,15) = 3, gcd (10,15)= 5$$
+The usefulness of this is suppose we find some order $r$ for some number $a$. $a^r \equiv 1 \pmod{N}$. Then, if youchoose $x=a^{r/2}$ we have the equation above. 
+\end{tcolorbox}
+\textit{Theorem 5.3} Suppose $N = p_1^{\alpha_1} \dots p_m^{\alpha_m}$ is the prime factorization of an odd composite positive integer. Let $x$ be an integer chosen uniformly at random, subject to $1\leq x\leq N-1$ and $x$ is coprime to $N$. Let $r$ be the order of $x \bmod N$. $$p(r \text{ is even and} x^{r/2} \neq -1 \pmod{N}) \geq 1 - \frac{1}{2^m} $$
+\subsection{Reduction of factoring to order finding:}
+\textbf{Inputs:} A composite number $N$\\
+\textbf{Output:} A non-trivial (not $0, N$) factor of $N$.
+\textbf{Runtime:} $O((\log N)^3)$ where the log factor comes from bit representation, $\log N \approx L$.
+\begin{enumerate}
+	\item If $N$ is even, return factor $2$.
+	\item Determine whether $N = a^b$ for integers $a \geq 1, b\geq2$ and if so return $a$.
+	\item Randomly choose $x$ in range $1$ tho $N-1$. If $gcd(x,N) > 1$ return as factor. 
+	\item Use order-finding subroutine to find order $r$ of $x \bmod N$.
+\item If $r$ is even and $x^{r/2} \neq -1 \pmod{N}$ then compute $gcd(x^{r/2} -1,N)$ and $gcd(x^{r/2}+1, N)$ and test to see if one is a non-trivial factor returning that factor if so. Else the algorithm fails.
+\end{enumerate}
+\begin{tcolorbox} \textbf{Exercise 5.17} Find algorithm to determine whether $N=a^b$ for $a \geq 1, b\geq2$. \\
+	First we show if $b$ exists, $b\leq L$. Then, $ 2^L \geq N = a^b$
+	$$\iff L \geq \log a^b=  b \log a$$
+	Since $a \geq 2$ ($a=1$ case is triv.), $\log a > 1 \implies b \log a > b$
+	$$\implies L \geq b$$.
+	Then, the ones where the operations are kind of triv.\\
+	The algorithm is this:
+	\begin{enumerate}
+		\item Calculate $y = \log N$. Then, calculate $x = y/b$ which is probably somewhere near an integer. Bit shift that many times to get $u_1, u_2$.
+		\item Caclulate $u^b_1, u^b_2$ by repeated squaring ($b$ times). If its $N$ then it's ok. If not then it isn't.
+	\end{enumerate}
+\end{tcolorbox}
+\begin{tcolorbox} \textbf{Exercise 5.18} Factor $N = 91$, choose $x=4$ for phase estimation. Compute order $r$ of $x\bmod N$ and show that $x^{r/2} \bmod 91 = 64 \neq -1 \pmod{91}$.\\
+	\begin{enumerate}
+		\item $N$ is not even, so 2 is not a factor.
+		\item $\log 91 \approx 6.5 \implies L = 7$. We check $b = 2,3,4,5,6,7$. It is clear to see that for any $b$, $2^{y/b}$ we can check $u_1, u_2$ and then see that $u_1^b, u_2^b$ fails. For instance $b=2$, $2^{\approx3.25} \approx 9.53 \implies u_1 =9, u_2 = 10.$ Neither squared is 91.  
+		\item Choose $x=4$. The GCD is $1$, since the two numbers are coprime.
+		\item We then calculate the order using the order finding subroutine. We find that $r=6$
+		\item $r$ is even, $4^3 = 16 \neq -1 \pmod{N}$. Thus we compute $gcd(4^3\pm 1,91)$ We see that $gcd(4^3-1, 91)= 7$, which is a nontrivial factor of 91.
+	\end{enumerate}
+\end{tcolorbox}
+\section{The Hidden Subgroup Problem and Friends}
+\subsection{Period-finding}
+Suppose $f$ is a periodic function producing a single bit as output such that $f(x+r) = f(x)$ for some unknown $0 < r < 2^L$ where $x,r \in \{0,1,2,\dots\}$.
+\textbf{Input:} a quantum black box $U$ which performs unitary $U\ket{x}\ket{y} \to \ket{x} \ket{y \oplus f(x)}$. A state to store the function evaluation, $\ket{0}$ and also $t = O(L+ \log(1/\epsilon))$ qubits initialized $\ket{0}$.\\ 
+\textbf{Output:} The smallest integer $r>0$ such that $f(x+r) = f(x)$.\\
+\textbf{Runtime:} One call to $U$ abd $O(L^2)$ operations.
+\begin{enumerate}
+	\item Intialize: $\ket{0} \ket{0}$
+	\item $\xrightarrow[H]{} \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1}\ket{x}\ket{0}$
+	\item $\xrightarrow[U]{} \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1} \ket{x}\ket{f(x)} \approx \frac{1}{\sqrt{r 2^t}} \sum_{l=0}^{r-1} \sum_{x=0}^{2^t-1} e^{2\pi i lx/r} \ket{x} \ket{\hat{f}(l)}$
+	\item $\xrightarrow[iQFT]{} \sum_{l=0}^{r-1} \ket{\tilde{l/r}} \ket{\hat{f}(l)}$
+	\item Measure to $\tilde{l/r}$.
+	\item Apply continued fractions, return $r$.
+\end{enumerate}
+We will briefly rephrase this in terms of order-finding. Parallels will be made clear when we directly move onto the hidden subgroup problem. \\ 
+For order finding our unitary is $U\ket{y} \to \ket{xy \bmod N}$, whereas for more general period finding we have $U\ket{xy} \to \ket{x}\ket{y\oplus f(x)}$.\\
+For order finding, we have eigenvector: $\ket{u_s} = \frac{1}{\sqrt{r}} \sum e^{-2\pi isk/r} \ket{x^k \bmod N}$.\\
+For period finding we have $\ket{\hat{f}(l)} = \frac{1}{\sqrt{r}} \sum e^{-2\pi ilk/r} \ket{f(x)}$.
+In exercise 5.13, we showed that $\ket{x^k \bmod N} = \frac{1}{\sqrt{r}} \sum e^{2\pi isk/r} \ket{u_s}.$\\
+Equivalently, for period finding: $\ket{f(x)} = \frac{1}{\sqrt{r}} \sum^{r-1}_{x=0} e^{2\pi ilx/r} \ket{\hat{f}(l)}.$
+\begin{tcolorbox}\textbf{Exercise 5.20} Suppose $f(x+r) = f(x),$ and $0 \leq x < N$ for $N$ an integer multiple of $r$. Compute:
+	$$\hat{f}(l) \equiv \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} e^{-2\pi ilx/N}f(x)$$ and relate the result to 5.63.
+		You will need to use the fact that:
+		$$\sum_{k \in \{0,r,2r, \dots, N-r\}} e^{2\pi ikl/N} = \sqrt{N/r} \delta_{l, kN/r}$$
+		that the sum is equal to $\sqrt{N}/r$ if $l$ is an integer multiple of $N/r$.\\
+		\textbf{Solution:}
+		We can express any $x$ as $k+j$, where $k \in \{0,r,2r,\dots, N-r\}$ and $j \in [0, r)$.\\
+		Then,
+		$$\hat{f}(l) = \frac{1}{\sqrt{N}} \sum_{k \in K} \sum_{j=0}^{r-1} e^{-2\pi il(k+r)/N} f(x)$$
+		$$= \frac{1}{\sqrt{N}} \sum_{k \in K} \sum_{j=0}^{r-1} e^{-2\pi ilk/N}  e^{-2\pi ilr/N} f(x) $$
+		$$= \frac{1}{\sqrt{N}} \sum_{k \in K}  e^{-2\pi ilk/N}   \sum_{j=0}^{r-1}e^{-2\pi ilr/N} f(x) $$
+Using the hint:	
+$$= \frac{1}{\sqrt{N}} \frac{\sqrt{N}}{\sqrt{r}} \sum_{j=0}^{r-1}e^{-2\pi ilr/N} f(x) $$
+$$= \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1}e^{-2\pi ilr/N} f(x) $$
+as desired.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.21(Period-finding and phase estimation)} Suppose you are given a unitary operator $U_y$ which performs the transformation $U_y \ket{f(x)} = \ket{f(x+y)}$ for the periodic function above. Show the eigenvectors of $U_y$ are $\ket{\hat{f}(l)}$ and calculate their eigenvalues. Show that given $\ket{f(x_0)}$ for some $x_0, U_y$ can be used to realize a useful blackbox for $U$.\\
+	\textbf{Solution:}\\
+	$$U_y \ket{\hat{f}(l)} = \frac{1}{\sqrt{r}} \sum^{r-1}_{x=0} e^{-2\pi lx/r} \ket{f(x+y)}$$
+Choose $x'=x+y \iff x=x'-y$. Since $x'$ is also periodic with period $r$, we can change variables to:
+$$ = \frac{1}{\sqrt{r}} \sum^{r-1}_{x'=0} e^{-2\pi l(x'-y)/r} \ket{f(x')}$$
+$$= e^{2\pi l y/r} \ket{\hat{f}(l)}$$\\
+If we had $U_y \ket{f(x)} = \ket{f(x+y)}$ and some fixed $\ket{f(x_0)}, $ we can define $\ket{\hat{f}(l)}$ and do everything the same. Set second state to $\ket{f(x_0)}$ and then controlled $U_Y$ gate.
+\end{tcolorbox}
+\subsection{Discrete logarithms}
+The natural evolution of the period finding problem which deals with one integer is the discrete logarithm problem. Consider function $f(x_1,x_2) = a^{sx_1 + x_2} \bmod N$ where all variables are integers and $r$ is the order of $a \bmod N  \equiv a^r \bmod N = 1$. This function is periodic with 2-tuple period $(l, -ls)$. This allows us to solve the discrete log problem: which is determining $s$ for $b=a^s$ given some $a,b$. We use unitary $U \ket{x_1}\ket{x_2} \ket{y} \to \ket{x_1} \ket{x_2} \ket{y \oplus f(x)}$ where $\oplus$ is XOR. Assume we already know order from previous order-finding algorithm.\\
+\textbf{Input:} A black-box performing the unitary described above with $f(x_1,x_2) = b^{x_1} a^{x_2}$, a state to store the function evaluation initialized to $\ket{0}$ and two $t$ qubit registers initialized to $\ket{0..0}$.
+\textbf{Output:} Smallest $s$ such that $a^s = b$. \\
+\textbf{Runtime:} One call of $U$ and $O(ceil(\log r)^2)$ operations with $O(1)$ probability.
+\begin{enumerate}
+	\item $\ket{0}\ket{0}\ket{0}$
+	\item $\xrightarrow[H]{} \frac{1}{2^t} \sum_{x_1} \sum_{x_2} \ket{x_1} \ket{x_2} \ket0 $
+	\item $\approx \frac{1}{2^t \sqrt{r}} \sum_{l_2} \sum{x_1}\sum_{x_2} e^{2\pi i (s l_2 x_1 + l_2 x_2)/r} \ket{x_1} \ket{x_2} \ket{\hat{f}(s l_2, l_2)}$
+	\item $= \frac{1}{2^t \sqrt{r}} \sum_{l_2} [\sum_{x_1} e^{2\pi i (s l_2 x_1)/r} \ket{x_1}] [\sum_{x_2} e^{2\pi i l_2 x_2/r} \ket{x_2}] \ket{\hat{f}(sl_2, l_2)}$
+	\item $\xrightarrow[iQFT]{} = \frac{1}{\sqrt{r}} \sum_{l_2} \ket{\hat{sl_2/r}} \ket{\hat{l_2/r}} \ket{\hat{f}(sl_2, l_2)}$
+	\item Measure the first two registers, yielding: $\hat{s l_2/r}, \hat{l_2/r}$
+	\item Apply continued fractions
+\end{enumerate}
+Functionally it is extremely similar to the previously analyzed period-finding and order finding algorithms. A huge chart will come soon making all the parallels much clearer. Two important steps we will show in the next two exercises.
+\begin{tcolorbox}\textbf{Exercise 5.22} Show that the eigenstate of $U$,
+	$$\ket{\hat{f}(l_1, l_2)} = \sum_{x_1} \sum_{x_2} e^{-2\pi i (l_1 x_1 + l_2 x_2)/r} \ket{f(x_1,x_2)} = \frac{1}{\sqrt{r}} \sum_{j} e^{-2 \pi i l_2 j/r} \ket{f(0,j)}$$ where $l_1/s - l_2$ is an integer multiple of $r$. 
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.23} Compute:
+	$$\frac{1}{r}\sum_{l_1 = 0} \sum_{l_2 = 0} e^{2\pi i (l_1 x_1 + l_2 x_2)/r} \ket{\hat{f}(l_1, l_2)}$$ using the equation in the previous exercise and show that the result is $f(x_1,x_2).$
+\end{tcolorbox}
+\subsection{The Hidden Subgroup Problem}
+The hidden subgroup problem is as follows:
+\begin{tcolorbox}\textbf{Hidden Subgroup Problem:}
+	Let $f$ be a function from a finitely generated group $G$ to a finite set $X$ such that $f$ is constant on the cosets of a subgroup $K$ and distinct on each coset. Given a quantum black box for performing the unitary transform $U \ket{g} \ket{h} = \ket{g} \ket{h \oplus f(g)},$ for $g \in G, h \in X$ and $\oplus$ an appropriately chosen binary operation on $X$ find a generating set for $K$.\\
+
+\end{tcolorbox}
+\textbf{Definition:}
+A [left] coset of a subgoup $K$ is the set composed of every $gk, g \in G, k \in K$. For a group like addition mod $N$, we denote cosets as $1 + K , 2 + K, ...$.\\
+\textbf{Definition:} Fourier transform on a Group:\\
+You can express a function that maps group to complex numbers as a vector so it basically your function is just like indexing a vector. Then, for some Abelian group $G$ defined by $g \in [0, N-1]$ with addition, defining $\rho_h(g) = e^{-2\pi igh/N}$ as $h$ representation of $g$ (which has one dimensional representation), we can see that the Fourier transform on $G$ are:
+$$\hat{f}(h) = \frac{1}{\sqrt{N}} \sum_{g=0}^{N-1} f(g) e^{-2\pi i gh/N}$$
+$$f(h) = \frac{1}{\sqrt{N}} \sum_{g=0}^{N-1} \hat{f}(g) e^{2\pi i h g/ N}$$
+\begin{tcolorbox}\textbf{Exercise A2.23} Show the Fourier transform relations for $G$ are what is stated above. \\
+	For $G$ a finite group of order $N$ and $f$ a function that maps group elements to complex numbers, for an irreducible representation $\rho$ of $G$ of dimension $d_\rho$ the Fourier transform is defined as:
+	$$\hat{f}(p) \equiv \sqrt{\frac{d_\rho}{N}} \sum_{g \in G} f(g) \rho(g)$$
+	For $\rho_p = 1 \rho_h(g) = e^{-2\pi i gh/N}$, we can immediately see that:
+	$$\hat{f}(\rho)  = \frac{1}{\sqrt{N}} \sum_{g = 0}^{N-1} f(g) e^{-2\pi igh/N}$$
+	as desired. We then show the inverse $f(h)$ is defined as so. Substiting the expression for $f(h)$ into $\hat{f}(h)$ yields:
+	$$\hat{f}(h) = \frac{1}{N} \sum_{g=0}^{N-1} \sum^{N-1}_{k=0} \hat{f}(k) e^{-2\pi i g(k-h)/N} $$
+	From exercise 5.13, we know that $\sum_{g}e^{-2\pi i g(k-h)/N} = N\delta_{kh}$ (easily proved with geometric series).
+	$$\hat{f}(h) =  \delta_{kh} \sum^{N-1}_{k=0} \hat{f}(k)  = \hat{f}(h)$$
+
+\end{tcolorbox}
+The algorithm for Hidden Subgroup is very similar to what we have seen previously.
+The algorithm first initializes $\ket{0}\ket{0}$. Then, we use a Fourier transform (generalizing the Hadamard operation) to put the first register into a superposition.\\
+We see that $\ket{0}$ is equivalent to a function $\Lambda$ that maps $g=0$ to 1 and any other element in $g$ to $0$. Using the formulation of the QFT as an action on a function from groups to complex numbers, we can define the new state as $\hat{\Lambda}(h) = \frac{1}{\sqrt{N}} \sum_{g \in G} \Lambda(g) e^{2\pi i g 0/ N} = \frac{1}{\sqrt{N}}$. This function returns $\frac{1}{\sqrt{N}}$ for every element in $G$, which is the vector $\frac{1}{\sqrt{N}}\ket{1...1}$ from our usual understanding (see exercise 5.2). 
+$$\ket{0}\ket{0} \xrightarrow[QFT]{}  \frac{1}{\sqrt{G}} \sum_{g \in G}\ket{g} \ket{0} $$
+Perform the controlled unitary on the second register (with the first as control):
+$$\frac{1}{\sqrt{G}}\sum_{g \in G} U\ket{g} \ket{0} =  \frac{1}{\sqrt{G}}\sum_{g \in G}\ket{g} \ket{f(g)} $$
+We rewrite $\ket{f(g)}$ in the Fourier basis:
+$$\ket{f(g)} = \frac{1}{\sqrt{|G|}} \sum_{l=0}^{|G|-1} e^{2\pi i lg/|G|} \ket{\hat{f}(l)}$$
+$$\frac{1}{\sqrt{|G|}}\sum_{g\in G} \ket{g}\ket{f(g)} \approx \frac{1}{|G|} \sum_{g \in G}\sum_{l \in G} e^{2 \pi i lg/ |G|}\ket{g} \ket{\hat{f}(l)}$$
+Since $f$ is constant and distinct on cosets of the subgroup $K$, $\ket{\hat{f}(l)}$ has nearly (?) zero amplitude for all $l$ except for those which satisfy $\sum_{h \in K} e^{-2\pi i lh/ |G|} = |K|$ (equivalently that $l,h$ are orthogonal). Intuitively this is an extension of the usual geometric summation identity we have been using in each other HSP-derived problem.\\
+Consider as an example subgroup $K$ with cosets $1+K, \dots, v + K$ where there are $v$ cosets. Then, we can see that any $g \in G$ can be expressed as $g = u + K$, $u \in \{ 1, \dots, v\}, h \in K$. Thus: $\sum_{g \in G} g = \sum_{u}\sum_{h \in K} u + h$.
+$$  =\frac{1}{|G|} \sum_{g \in G}\sum_{u} \sum_{h \in K} e^{2 \pi i g (u+h)/ |G|}\ket{g} \ket{\hat{f}(u+h)} = \frac{1}{|G|} \sum_{g \in G}\sum_{u} \sum_{h \in K} e^{2 \pi i g u/ |G|} e^{2 \pi i g h/ |G|}\ket{g} \ket{\hat{f}(u+h)}$$
+Since $f$ is constant on cosets, $f(u+h) = f(u)$
+$$= \frac{1}{|G|}\sum_{g \in G} \sum_{u} \sum_{h\in k} e^{2\pi i gh/|G| }e^{2\pi i gu/|G|} \ket{g}\ket{\hat{f}(u)}$$
+Using $\sum_{h\in K} e^{2\pi i gh/ |G|} = |K|$ and 0 if $h \not \in K^\perp$
+$$\approx \frac{|K|}{|G|} \sum_{g \in G} \sum_{l \in K^\perp} e^{2\pi igl/ |G|} \ket{g}\ket{\hat{f}(l)}$$
+If $l, |G|$ have common factors however then extracting $l$ immediately from the equation may not actually provide useful results. With no guarantee on $l, |G|$ being coprime or anything else like that, we must use the fundamental theorem of finite Abelian groups.\\
+\textbf{Fundamental Theorem of Finite Abelian Groups:}\\
+Any finite Abelian group $G$ is isomorphic to a product of cyclic groups of prime power order, that is, $G = \mathbb{Z}_{p_1} \times \mathbb{Z}_{p_2} \times \dots \times \mathbb{Z}_{p_m}$ where $p_i$ are primes and $\mathbb{Z}_{p_i}$ is the group over integers mod $p_i$. Therefore the phase equivalently is:
+$$e^{2\pi i lg/ |G|} = \prod_{i=1}^M e^{2\pi i l'_i g_i / p_i}$$
+Therefore we then have:
+$$ = \frac{|K|}{|G|} \sum_{g \in G} \sum_{l \in K^\perp} \prod_{i=1}^M e^{2\pi ig_i l'_i/ p_i} \ket{g}\ket{\hat{f}(l)}$$
+
+\begin{figure}
+	\centering
+	\includegraphics[width =1.25\linewidth]{hsp.png}
+	\caption{Hidden Subgroup Problem variations}
+\end{figure}
+
+\begin{tcolorbox}\textbf{Exercise 5.26} Since $K$ is a subgroup of $G$, when we decompose $G$ into a product of cyclic groups of prime power order, this decomposes $K$. Rexpress (5.77) to show that determining $l'_i$ allows one to sample cyclic subgroup $K_{p_i}$ of $K$.\\
+
+By the theorem eq. (5.77) is:
+$$\sum_{h\in K} e^{-2\pi i lh /|G|} = \prod_{i=0}^M \sum_{h\in K} e^{-2\pi il_i h_i/ p_i} = \prod_i |K_{p_i}|$$
+Each $l_i h_i = 0$ allows us to determine orthogonal elements for each $K_{p_i}$. 
+
+
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.27} Explain how quantum algorithms can decompose finite Abelian group $G$ into cyclic groups of prime power order.\\
+	We can use Shor's to decompose $Z$ into $Z_{p_1} \times \dots \times Z_{p_i}$. Choose some arbitrary $g\in G$ such that, find the order of $g$ i.e $r$ such that $g^r  = e$ wher $e$ is the identity element of $G$. Thus we have found a cyclic group of size $r$. Rinse and repeat.
+\end{tcolorbox}
+Performing the inverse quantum Fourier transform on the first register we see that:
+$$\frac{|K|}{\sqrt{|G|}}\sum_{g \in G} e^{2\pi i gl/ |G|}\ket{g} = \ket{l_i}$$
+Thus we have:
+$$\frac{|K|}{\sqrt{|G|}} \sum_{l \in K^\perp} \ket{l} \ket{\hat{f}(l)}$$
 \end{document}
