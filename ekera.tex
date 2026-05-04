@@ -1,0 +1,175 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+
+\title{Quantum Computation Notes \\ \large Regev's Algorithm and the Discrete Logarithm}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\section{The discrete logarithm problem:}
+Given real numbers $a,b$, the logarithm $\log_b(a)$ is the number $x$ such that $b^x = a$. The discrete logarithm extends the concept to a cyclic group. Consider $b=2$ in the multiplicative group modulo 5.
+Thus,
+$$2^1 = 2, 2^2 = 4, 2^3 = 8  \equiv 3 \pmod 5, 2^4 = 16 \equiv 1 \pmod 5$$
+Therefore:
+$$\log_2 1 = 4, \log_2 2 = 1, \log_2 3 = 3, \log_2 4 = 2$$
+\textbf{Shor's Algorithm for Discrete Logarithm:}\\
+Shor's algorithm for discrete logarithm is similar to the algorithm for order-finding/factoring, which is why we can extend it similarly to a lattice-method as with Regev's algorithm.\\
+We can frame Shor's algorithm as looking for the period in a 2D lattice (instead of HSP-presentation looking for period $(l, sl)$ in $\mathbb{Z}_r \times \mathbb{Z}_r$, which is what we are presenting below). We seek $s$ such that $a^s = b \mod N$. If we can find $(x_1, x_2),$ s.t. $f(z_1, z_2) = 1$ for $f(x_1, x_2) = a^{sx_1 + x_2} = b^{x_1}  a^{x_2}$ then:
+$$a^{sx_1} a^{x_2} \equiv 1 \bmod N$$
+$$\iff a^{x_2} \equiv a^{-sx_2} \bmod N$$
+$$\iff z_1 \equiv sz_2 \pmod r$$
+where $r$ is the order of $a$.  The set of all integer pairs $(z_1, z_2)$ that satisfy $z_1 - sz_2 \equiv 0 \pmod r$ forms a 2d lattice, also a HSP $H$ with generators $(N, 1), (r, 0)$.
+\textbf{Inputs:} A black box that performs $U\ket{x_1}\ket{x_2}\ket{y} = \ket{x_1}\ket{x_2}\ket{y\oplus f(x_1,x_2)}$ for $f(x_1,x_2) = b^{x_1}a^{x_2} = a^{sx_1 + x_2} \mod N$ where $a^s = b$. A state to store function evaluation initialized to $\ket0$ and two $t$ qubit registers initialized to $\ket0$.\\
+\textbf{Output:} $s$ such that $a^s = b$.\\
+\textbf{Runtime:} One use of $U$ and $O(|\log r|^2) \approx O(n^2)$ operations and $O(1)$ success.
+\begin{enumerate}
+	\item Initialize $\ket{0}\ket{0}\ket{0}$
+	\item Create uniform superposition and apply unitary:
+		$$\xrightarrow[H]{}\frac{1}{N} \sum_{x_1 = 0}^{N} \sum_{x_2 = 0}^{N} \ket{x_1}\ket{x_2}\ket{0}$$
+	$$\xrightarrow[U]{}\frac{1}{N} \sum_{x_1 = 0}^{N} \sum_{x_2 = 0}^{N} \ket{x_1}\ket{x_2}\ket{f(x_1,x_2)}$$
+\item Measure the function register.
+Since $f(x_1,x_2) = f(x_1 + l, x_2 - sl)$,
+$$ = \frac{1}{\sqrt{r}} \sum_{l = 0}^{r-1} \ket{x_1' + l}\ket{x_2'-sl}\ket{f(x_1',x_2')}$$
+\item Discarding the function register, perform the quantum Fourier transform on the first two.
+	$$\xrightarrow[QFT]{} \frac{1}{N\sqrt{r}} \sum_{u=0}^{N} \sum_{v=0}^{N} \sum_{l=0}^{r-1} e^{2\pi i (x'_l + l)u/N} \ket{u} e^{2\pi i (x'_2 - sl) v/N}\ket{v}$$
+	$$= \frac{1}{N\sqrt{r}} \sum_{u=0}^N \sum_{v = 0}^N \sum_{l=0}^{r-1} e^{2\pi i (x'_1u + lu + x_2'v - slv)/N} \ket{u}\ket{v}$$
+	$$=\frac{1}{N\sqrt{r}} \sum_{u=0}^{N} e^{2\pi i x_1' u/N}\sum_{v=0}^{N} e^{2\pi i x_2' v/N}\sum_{l=0}^{r-1} e^{2\pi i l(u-sv)/N}\ket{u}\ket{v}$$
+	Interpreting the geometric sum $\sum_{l=0}^{r-1} e^{2\pi il (u-sv/N)}$, we see the amplitude of $u,v$ is high if $u-sv \approx kN/r$ and close to zero elsewhere. Thus:
+	$$ \approx \frac{r}{\sqrt{H}} \sum_{u-sv \approx kN/r} e^{2\pi i(x_1' u + x'_2 / N)} \ket{u}\ket{v}$$
+\item Measure registers containing $u,v$, yielding $u,v$ such that $u-sv \approx kN/r$.
+\item Suppose we know $r$ from performing order finding on $a^r \equiv 1 \bmod N$. That can simplify our calculation as:
+	$$ru-rsv \approx kN \bmod N \iff ru - rsv \equiv k \bmod 1 \iff u \equiv sv\bmod r$$
+	and we can solve for $s$. Or alternatively, if we don't know $r$, we can use a modified version of continued fractions.
+\end{enumerate}
+\section{Regev's Algorithm}
+Regev's algorithm defines lattice:
+$$\mathcal{L} = \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | \prod_{i=1}^{d} a_i^{z_i} \equiv 1 \bmod N\}$$
+and $\mathcal{L}_0 \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | \prod_{i=1}^{d} b^{z_i}) \in \{-1, 1\} \pmod {N}\}$
+and finds a vector in $\mathcal{L} / \mathcal{L}_0$ thus finds $z_1\dots z_d$ such that 
+$$ \prod_{i=1}^{d} a^{z_i}_i \equiv 1 \pmod N$$
+where $a_i = b_i^2$ where $b_1, \dots, b_d$ are small primes, essentially extending:
+$$x^2 \equiv 1 \pmod N \implies (x-1)(x+1) | N \implies gcd((x-1), N), gcd(x+1, N) \text{ has a factor.}$$
+Shor's uses quantum order-finding to find $r$ such that:
+$$\implies x^r \equiv 1 \pmod N \implies gcd(x^{r/2} \pm 1, 1) \text{ are factors for even $r$.}$$
+Therefore we compute:
+$$a_1^{z_1}\dots a_n^{z_n} \equiv 1 \pmod N \implies (b_1^{z_1}\dots b_n^{z_n})^2 \equiv 1 \bmod N$$
+$$\implies gcd(b_1^{z_1}\dots b_n^{z_n} \pm 1, N) \text{ has a factor.}$$
+\section{Extending to Discrete Logarithm:}
+\textbf{Runtime: $O(\sqrt{n} U + n^{3/2})$} (log factors are omitted)\\
+
+Suppose $G$ is a finite Abelian group and let $g\in G$ be a generator of a cyclic group $\braket{g} \subseteq G$ of order $r$ and let $x = g^e$ for $e \in (0,r)\cap \mathbb{Z}$. Given $g,x$ we attempt to calculate $e = \log_g x$.\\
+Let $g_1, \dots, g_{d_1}$ be small distinct elements in $\braket{g}$ such that $g_i = g^{e_i}$ where integers $e_i \in (0,r)$ for all integers $i \in [1,d)$. Generally choose $g_1, \dots, g_{d-1}$ to be first $d-1$ primes in $\braket{g}$. \\
+Then, there is an efficient quantum algorithm (we prove later) that outputs $w\in [0,1)^d$ such that it is within distance $\sqrt{d/2} \cdot 2^{-C\sqrt{n}}$ of a uniformly chosen $v \in \mathcal{L}_{x}^{*}/ \mathbb{Z}^d$ where:
+$$\mathcal{L}_x = \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | x^{z_d} \prod_{i}^{d-1} g_{i}^{z_i} = 1\}$$
+with gate cost $$O(n^\frac12 G + n^{\frac{3}{2}})$$
+and $Q = S + (\frac{C}{\log \phi} + 8 + o(1))n$ qubits, where $G$ is the gate cost of the unitary that takes $\ket{a,b,t, 0^s} \to \ket{a,b, (t+ab) \bmod N, 0^s}$.
+\begin{tcolorbox}\textbf{Digression: Modular Exponentiation}\\
+	This is freaky in Shor's also. Basically say i want to compute $u^x \mod N$. Then, my input into the qubits that go into the unitary are $a = x =$ some binary string equal to $x$, and $b$ is a set of precomputed values for $u^{2_i}$ from $i$ to $n$. Say we want to compute $u^15$. So, we get $18 = 10010$in binary. We get $a^{2^5} + 0 + 0 + a^2 + 0$. Then, we have another unitary that adds one the other amount of times. Something to that effect.
+\end{tcolorbox}
+There is efficient classical algorithm that recovers a basis for sublattice $\Lambda$ of $\mathcal{L}_x$ given vectors $w_1, \dots, w_m$. It also contains vectors of norm at most $T=exp(O(\sqrt{n}))$, including $L_{x}^{0} = \{z \in \mathcal{L}_x | gcd(z_d,r) \neq 1\}$.\\
+Suppose we know $e_i$ such that $g_i = g^{e_i}$ (precomputable using Shor's, essentially the order of each cycling subgroup) for discrete logarithm. Then, given $z = (z_1, \dots, z_d)$ we have:
+$$x^{z_d} \prod_{i=1}^{d-1} g_{i}^{z_i} = g^{e z_d} g^{e_1 z_1 + \dots + e_{d-1}z_{d-1}} = g^{e_1 z_1 + \dots e z_d} = 1$$
+$$\iff e_1 z_1 + \dots + e z_d \equiv 0 \bmod r$$
+Since we have that $gcd(z_d,r)=1$ then, $z_d$ has an inverse mod $r$ and we can compute:
+$$e = \log_g x = - (e_1 z_1 + e_{d-1} z_{d-1})/z_d \pmod r$$
+Notice that this requires precomputing $e_i$ using Shor's algorithm for order finding. This kind of beats the purpose, so instead consider this:
+\subsection{Precomputing/Lattice Approach}
+Dog cheese dog dog sauce
+$$\prod_i g_i^{z_i} \sum_x e^{x} \int_a^b f(x) dx$$
+
+\section{Elliptic Curves}
+Standard discrete logarithm is not that difficult to solve. Thus, using the point group defined by an elliptic curve has been used in place of standard discrete logarithm. An elliptic curve is a formula of the following form:
+$$y^2 = x^3 + Ax + B$$
+Let $\mathbb{F}_p$ be a finite field. The elliptic curve group for cryptography is:
+$$E_{A,B}(\mathbb{F}_p) = \{ (x,y) \in \mathbb{F}_p : y^2 = x^3 + Ax + B\} \cup \{ O\}$$
+where $O$ is the special point called point in infinity.
+Notice that if you draw a line intersecting two points on the curve (over the field that the curve is on*), it may intersect the curve again at another rational point. If you flip the $y$ value, it is another rational point (since it is symmetric over $x$ axis). This is our group operation: 
+$$+: E(\mathbb{F}) \to E(\mathbb{F})\text{ as drawing the line and then flipping}$$ 
+By adding infinity element, it is a group with infinity as identity (visualize the line intersecting $P$ from infinity, thus also intersecitng the point on the curve at $-P$, which after reflection is $P$) and inverse $-P = (x,-y)$. \\
+You can express this algebraically also. Consider $P,Q$ such that $P \neq \pm Q \neq O$. The slope is:
+$$m = \frac{y_2 - y_1}{x_2 - x_1} \text{ and line } y = m(x-x_1) + y_1$$
+To find intersection:
+$$(m(x-x_1) + y_1)^2 = x^3 + Ax + B \iff 0 = x^3 - m^2 x^2 + \dots$$
+This is not easily to solve, but since we know $P,Q$ and they are two zeroes of the polynomial by construction, we can factor the expression:
+$$x^3 - m^2 x^2 + \dots = (x-x_1)(x-x_2)(x-x_3) = x^3 - (x_1 + x_2 + x_3)x^2 + \dots$$
+$$\iff x_3 = m^2 - x_1 - x_2, y'_3 = m(x_3 -x_1) + y_1$$
+Reflecting across x we get,
+$$P + Q = (x_3, y_3) = (m^2 - x_1 - x_2, m(x_1 - x_3)-y_1)$$
+Note: for doubling a point (comes later) we use the tangent line instead of the chord. By calculus, the slope of the tangent line is:
+$$m = \frac{3x^2 + 1}{2y}$$
+We can consider the elliptic curve over finite field $\mathbb{F}_p$. For instance, consider curve $E: y^2 = x^3 + x + 1$ over $\mathbb{F}_5$. Then, we see that:
+$$x = 3 \implies x^3 + x + 1 = 31 \equiv 1 \mod 5 \implies y = \pm 1 \implies \text{points are }(3,1), (3,4)$$
+$$x = 4 \implies x^3 + x + 1 = 69 \equiv 4 \mod 5 \implies y = \pm 2 \implies \text{points are }(4,2), (4,3)$$
+Suppose we want $(3,1) + (2,4)$. Then $m= \frac{3}{-1} \equiv 2 \pmod 5$ and therefore:
+$$(3,1) + (2,4) = (4-3-2, 2(3-4) - 1) \equiv (4,2)$$
+which is a point as we have seen.\\
+We now can define the discrete logarithm problem over an elliptic curve.\\ Given $P, Q \in E(\mathbb{F}_q)$, find integer $a$ such that $Q = aP$. This is fairily similar to what we have seen before. We formulate it as an instance of Shor's algorithm tomorrow.\\
+\begin{tcolorbox}\textbf{Example:}
+	Suppose we have point $P = (0,1)$ and $aP = (3,1)$. We enumerate multiples:
+	$$2(0,1) = (4,2) \implies 2(4,2) = (3,4) \implies 4(0,1) + (0,1) = (3,1)$$
+	Thus $a = 5$. The method here was just repeated addition over and over again.
+\end{tcolorbox}
+Important notes:
+\begin{enumerate}
+	\item The group $E(\mathbb{F}_p)$ is Abelian.
+	\item The order of $E(\mathbb{F}_p)$ satisfies:
+		$$|E(\mathbb{F}_p)| = p + 1 - t$$
+		where $|t| \leq 2\sqrt{p}$
+	\item If for $y^2 = x^3 + Ax + B$, $4A^3 + 27b^2 = -$ then the curve is singular.
+\end{enumerate}
+\subsection{Shor's Algorithm on Elliptic Curves}
+Consider $Q = \alpha P$. Then, consider $f(x_1,x_2) = Qx_1 + Px_2 = (\alpha x_1 + x_2P)$ where the operation between two points is defined as discussed earlier on some elliptic curve on finite field $\mathbb{F}_N$.\\
+Then, we can proceed as before and thus we just need to construct and analyze the runtime of a unitary that computes $U\ket{x_1}\ket{x_2}\ket{0} \mapsto \ket{x_1}\ket{x_2}\ket{f(x_1,x_2)}$.\\
+In this case, such a unitary is one that takes $\ket{x_1}\ket{x_2}\ket{0} \to \ket{x_1}\ket{x_2}\ket{(\alpha x_1 + x_2)P}$\\
+Recall that the main lemma (abridged):\\
+Let $G$ be the gate cost of the operation that takes $\ket{a,b,t,0^S} \to \ket{a,b, (t+ab)\bmod N, 0^s}$. Then, we can find vectors close to a uniformly chosen coset $v \in \mathcal{L}^*/\mathbb{Z}^d$ for $$\mathcal{L}  = \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | \prod_{i=1}^{d-k} g_i^{z_i} \prod_{i=1}^{k} u_i^{z_{d-k+i}} = 1\}$$  in $$O(n^\frac{1}{2} G + n^{\frac{3}{2}}) \text{ gates.}$$
+Calculating elements in the lattice:
+$$x^{z_d} \prod_{i=1}^{d-1} g_i^{z_i}  =1 \iff z_d Q + e_1 z_1 P_1 + \dots e_{d-1} z_{d-1} P_{d-1} = O$$
+We have to precompute $e_i$ such that $P_i = e_i P$
+$$ (e_1 z_1 + \dots + e_d z_{d})P = O$$
+$$\iff e_1 z_1 + \dots e_d z_d \equiv 0 \mod r$$ 
+like previous, where
+The unitary we seek would take the place of $n^\frac{1}{2} G$.\\
+\begin{enumerate}
+	\item Am I going in the right direction?
+	\item For "smaller points" to make sense on a point group, my intuition tells me that the group operation would have to be on a smaller group if that makes sense whereas for like the trad. modular exponentiation it would be easier just by being smaller numbers. Is my intuition correct?
+	\item But there is an upper bound somewhere in the lattice? Minkowski's first theorem?
+	\item Height? secp256 kind of easy? https://hal.science/hal-04833072/file/Regev\_for\_elliptic\_curves.pdf defines "Regev Friendly". We lift a curve $E$ defined over a finite field $\mathbb{F}_p$ to the curve $E$ defined over $\mathbb{Q}$. Then we search for a twist $\bar{E}_\delta$ of $\bar{E}$ by a $\delta \in \mathbb{Q}$ so that $\delta$ is a square and $\bar{E}_\delta$ has large rank.\\
+		\textbf{Lemma 3.3} A curve $E$ is Regev-friendly if there exists a square $\delta$ in its base field so that the twist of $E$ by $\delta$ is Regev-friendly. If $P,Q$ are two points of $E$ then
+		$$\log_P Q = log_{\phi(P)} \phi (Q)$$\\
+		Intuition: Lift, then twist. Now it is isomorphic to something in $\mathbb{Q}.$
+	\item Objective: Understand $O(\sqrt{n} G)$ 
+	\item How can I actually estimate resources? What exactly should I be estimating?
+\end{enumerate}
+https://arxiv.org/pdf/2604.02311 Ekera (not Regev) Better modular inversion circuit, $O(n^2) + 204n^2 \log n$, $O(n^3)$ total.\\
+https://eprint.iacr.org/2026/280.pdf Euclidean algorithm, $\tilde{O}(n^4)$ gate, $O(n)$ qubit\\
+\textbf{How do I estimate resources?}\\
+\newpage
+\section{Summary Thus Far:}
+\begin{enumerate}
+	\item Ekera's extension of Regev's algorithm outputs a vector $w\in [0,1)^d$ that (with $O(1)$ probability) is within distance $\sqrt{d/2} \cdot 2^{-C\sqrt{n}}$ of a uniformly chosen $v \in \mathcal{L}_x^* \backslash \mathbb{Z}^d$ where:
+		$$\mathcal{L}_x = \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | x^{z_d} \prod_{i=1}^{d-1} g_i^{z_i} = 1\}$$ for $C>0$ some constant. We perform this $m$ times and can reconstruct the lattice from these noisy samples of the dual. We can do this in:
+		$$O(n^\frac12 G + n^{3/2})$$
+		time (proof by Ragavan paper mostly) and using
+	$$Q = S + (\frac{C}{\log \phi} + 8 + o(1))n$$
+	where $n^\frac12 G$ cost is from the unitary modular exponentiation, which for small group elements provides an advantage. 
+\item If we can find some point where each $P_i$ can be represented in $O(\log n)$ qubits for $Q = \alpha P$, then we set up lattice:
+	$$\mathcal{L}_x = \{ (z_1, \dots, z_d) \in \mathbb{Z}^d | z_d Q + \sum_{i=0} z_i P_i = 1 \bmod r\}$$
+	where $P_i = e_i P_i$ we have to precompute.
+\item The problem here is that it is difficult for us to determine 
+\item I found a paper \href{https://arxiv.org/pdf/2604.02311}{EEA} that was a special circuit for extended Euclidean algorithm, which seemed to be the standard way to take care of business but managed to reduce qubit count on 256-bit prime field curve to 1333.
+\item The next paper I found was \href{https://hal.science/hal-04833072/file/Regev_for_elliptic_curves.pdf}{Regev Friendly Curves} which defined some kid of curve that was Regev-friendly which I did not quite follow, but the gist of it was that it used lifts and twists of a curve. Only a few curves are Regev friendly, but importantly secp256k, the one that the Google paper talked about is one of those curves.
+\item Where do I go from here? I understood the first reading of elliptic curves quite well, I was wondering if you had more material on elliptic curves that might be helpful for understanding lifts and twists? What other methods are there for reducing the "size" of the computation for elliptic curve problems?
+	\item How do I actually go about doing resource estimation?
+\end{enumerate}
+\section{Random}
+https://cstheory.stackexchange.com/questions/54114/comparing-shors-and-regevs-quantum-factoring-algorithm
+
+\end{document}

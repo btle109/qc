@@ -1,0 +1,233 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{braket}
+
+\title{Quantum Computation Notes \\ \large Grover's Algorithm}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+Grover's algorithm is the second great victory of quantum computing (after FFT/HSP).\\
+\section{The quantum search algorithm}
+We define an \textit{oracle} function first. The oracle function can recognize the correct solution (distinct from already knowing what it is! Take factoring for example, it is easy to check if a number is a factor without having to know the factors beforehand). We use the oracle in this manner:
+$$\ket{x}\ket{q} \xrightarrow[O]{} \ket{x} \ket{q \oplus f(x)}$$
+Thus we can check if $x$ is a solution by initializing state $\ket{x}\ket{0}$ and then using the oracle, checking if the second qubit has been flipped to $\ket{1}$. Thus for state : $(\ket{0} -\ket{1})/\sqrt{2}$, applying oracle yields:
+$$\ket{x}(\frac{\ket0 - \ket1}{\sqrt{2}}) \xrightarrow[O]{} (-1)^{f(x)} \ket{x} \frac{\ket0 - \ket1}{\sqrt{2}}$$
+We show that we can apply a search oracle to a $N$ item search with $M$ solutions $O(\sqrt{N}/\sqrt{M})$ times. The quantum search is a repeated application of the Grover iteration/operator $G$ which is as follows:
+\begin{enumerate}
+	\item Apply $O$.
+	\item Apply Hadamard $H^{\otimes n}$
+	\item Perform conditional phase shift, with every computational basis except $\ket{0}$ receiving a phase shift of $-1$.
+		$$\ket{x} \to -(-1)^{\delta_{x0}} \ket{x}$$. This can be done with $O(n)$ gates.
+	\item Apply Hadamard $H^{\otimes n}$. This, like step 2, requires $n= log(N)$ operations,
+\end{enumerate}
+\begin{tcolorbox}\textbf{Exercise 6.1:} Show the unitary operator corresponding to the phase shift in the Grover iteration is $2\ket{0}\bra{0} - I$.\\
+Trivial\end{tcolorbox}
+We can write steps 2,3,4 as $H^{\otimes n} (2 \ket{0}\bra{0} - I)H^{\otimes n}  = 2\ket{\psi}\ket{\psi} - I$ where $\ket{\psi}$ is the uniform superposition of states.
+We see then that the Grover operator can be written as $G  = (2\ket{\psi} \bra{\psi} - I)O$.
+\begin{tcolorbox}\textbf{Exercise 6.2:} Show that the operation $(2\ket{\psi} \bra{\psi} - I)$ applied to a general state $\sum_k \alpha_k \ket{k}$ produces:
+	$$\sum_k (-\alpha_k + 2 \braket{a}) \ket{k}$$
+	\begin{align*}
+		(2\ket{\psi}\bra{\psi} - I)\sum_k \alpha \ket{k} &= \sum_k (2\alpha_k\ket{\psi} \bra{\psi}\ket{k} - \alpha_k  \ket{k})\\
+		\intertext{Since $\ket{\psi} = \frac{1}{\sqrt{N}}\sum_x\ket{x}$,}
+								 &= \sum_k (2\alpha_k (\frac{1}{\sqrt{N}}\sum_x \ket{x})(\frac{1}{\sqrt{N}} \delta_{xk})  \ket{\psi} - \alpha_k \ket{k})\\
+								 &= \sum_k (2\alpha_k \frac{1}{N} \ket{k} - \alpha_k \ket{k}) \\
+								 &= \sum_K (2\braket{\alpha} - \alpha_k \ket{k}) 
+	\end{align*}
+\end{tcolorbox}
+Grover's algorithm initializes two registers, $n$ qubits initialized to $\ket0$ and an oracle work space. The first register is placed in a superposition using Hadamard, $O(\sqrt{N})$ Grover operators are used, and then the first register is measured.
+\subsection{Geometric Visualization:}
+The Grover iteration is a rotation in the two dimensional space spanned by the state of uniform superposition $\ket{\psi}$ and the state of uniform superposition of the solutions. Consider $\sum_{x}^{'}$ which is a sum over all $x$ that are solutions to the search problem and $\sum_x^{''}$ that is all $x$ that are not solutions. Define $\ket{\alpha}, \ket{\beta}$ such that:
+$$\ket{\alpha} = \frac{1}{\sqrt{N-M}} \sum_x^{''} \ket{x}, \ket{\beta} = \frac{1}{\sqrt{M}} \sum_{x}^{'} \ket{x}$$
+We then can see the the initial state $\ket{\psi}$ can be expressed as:
+$$\ket{\psi} = \frac{\sqrt{N-M}}{\sqrt{N}} \ket{\alpha} + \frac{\sqrt{M}}{\sqrt{N}}\ket{\beta}$$
+Clearly this is the same as even superposition. $G$ can be interpreted by realizing that $O$ performs a reflection around vector $\ket{\alpha}$ in the plane defined by $\ket{\alpha}, \ket{\beta}$ or alternatively that $O(a\ket{\alpha} + b\ket{\beta}) = a\ket{\alpha} - b\ket{\beta}$ (since it flips the sign of all the correct parts, leaves the incorrect alone). Play with it in Blender! $2\ket{\psi}\bra{\psi} - I$ also performs a rotation in the plane defined by $\ket{\alpha}, \ket{\beta}$ about the vector $\ket{\psi}$ (see exercise 6.2). Two reflections is a rotation! Suppose we let $\cos (\theta/2) = \sqrt{N-M/N}$. Then, we can express the even superposition state as:
+$$\ket{\psi} = \cos (\theta/2) \ket{\alpha} + \sin (\theta/2) \ket{\beta}$$
+You can do a bunch of trig to show that the Grover operator works the way it does or alternatively the geometric photo works. Either way we get:
+$$G\ket{\psi} = \cos (\frac{3\theta}{2})\ket{\alpha} + \sin (\frac{3\theta}{2})\ket{\beta}$$ 
+Essentially if you keep rotating towards the correct direction by $\theta$, you get 
+$$G^k \ket{\psi} = \cos (\frac{2k+1}{2})\ket{\alpha} + \sin (\frac{2k+1}{2}\theta)\ket{\beta}$$
+\begin{tcolorbox}\textbf{Exercise 6.3} Show that in the $\ket{\alpha}, \ket{\beta}$ basis, we can write the Grover iteration as:
+	$$G = \begin{bmatrix}  \cos \theta & - \sin \theta \\ \sin \theta & \cos \theta\end{bmatrix}$$
+\end{tcolorbox}
+\subsection{Performance}
+For state $\ket{\psi} = \frac{\sqrt{N-M}}{\sqrt{N}}\ket{\alpha} + \frac{\sqrt{M}}{\sqrt{N}}\ket{\beta}$, it takes a rotation of $\text{arccos} \frac{\sqrt{M}}{\sqrt{N}}$ radians to end with vector $\ket{\beta}$ (for why this angle, consider the fact that for $\sin \theta = a$, then rotating by the angle $\phi$ defined by $\cos \phi = \alpha$ leads to an overall angle of $\pi/2$). Since we increase by an angle of $\theta$ each time, we see that we need to repeat Grover iteration:
+$$R = \text{ceil}_{int} (\frac{\text{arccos} \sqrt{M/N}}{\theta}) \leq \frac{\pi}{2} \frac{1}{\theta}$$
+where the last inequality comes from the range of arccos. If we rotate $R$ times we can get an angle $\theta/2 \leq \frac{\pi}{4}$ of $\ket{\beta}$. We get at least $50$ per cent probability of success. We can bound $\theta/2 \leq \sin \theta/2 = \frac{\sqrt{M}}{\sqrt{N}}$ (for $M \leq N/2$) and thus $1/\theta \leq \frac{1}{2}\frac{\sqrt{N}}{\sqrt{M}}$
+$$\implies R \leq \frac{\pi}{4}\frac{\sqrt{N}}{\sqrt{M}}$$
+\subsection{Quantum Search Algorithm:}
+\begin{tcolorbox}\textbf{Exercise 6.4} Give explicit steps for the quantum search algorithm but for the case of multiple solutions ($1 < M < N/2$).\\
+	\textbf{Input:} A black box oracle $O$ that performs $O\ket{x}\ket{q} = \ket{x}\ket{q \oplus f(x)}$ where $f(x) = 0$ for all $0 \leq x < 2^n$ except $x_1, \dots, x_n$ for which $f(x_i) = 1$ and $n+1$ qubits in the state $\ket{0}$. $n \approx \log N$.\\
+	\textbf{Output:} $x_i \in [x_1, \dots, x_n]$ with $O(1)$ probability.\\
+	\textbf{Runtime:} $O(\sqrt{2^n})$ operations.
+	\begin{enumerate}
+		\item Initialize $\ket{0}^{\otimes n}\ket{0}$.
+		\item Create uniform superposition for the first $n$ qubits and $HX$ on the last qubit. 
+			$$\xrightarrow[H^{\otimes n}, HX]{} \frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^n-1} \ket{x}\ket{-}$$
+		\item Apply Grover iteration $R \approx \frac{\pi}{4} \frac{\sqrt{2^n}}{\sqrt{ M}}$ times.
+			$$G^R \frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^n - 1} \ket{x}\ket{-}$$
+			$$\approx \frac{1}{\sqrt{M}}\sum_{i=0}^{m} \ket{x_i} \ket{-}$$
+		\item  Measure the first $n$ qubits to receive any $x_i$ with equal probability.
+	\end{enumerate}
+\end{tcolorbox}
+If $M \geq N/2$, from the expression $\theta = \sin^{-1} (2\sqrt{M(N-M)}/N)$ (from $\sin \theta/2 =  \sqrt{M/N}$) we see that as $M$ increases from $N/2$ to $N$, $\theta$ decreases thus we need more iterations to get to $\ket{\beta}$. If we can know $M$ we can just resort to dice flipping. Otherwise we can just double the search space by adding one more qubit.
+\begin{tcolorbox}\textbf{Exercise 6.5} Show the augmented oracle $O'$ can be constructed with one $O$ and elementary quantum gates and $\ket{q}$\\
+	CCNOT, Swap Gate.
+\end{tcolorbox}
+\section{Quantum Searching as Quantum Simulation}
+We can loosely derive Grover's algorithm from the quantum simulation algorithm in the previous chapter.\\
+Recall that the evolution of a state is determined by $e^{-iHt}\ket{\psi}$ and we want to find some Hamiltonian $H$ such that we can evolve $\ket{\psi} \to \ket{x}$ (one solution for simplicity).
+Suppose we guess Hamiltonian: $$H = \ket{x}\bra{x} + \ket{\psi}\bra{\psi}$$
+We cab restrict to the two-dimensional space spanned by $\ket{x}, \ket{\psi}$. Suppose we use Gram-Schmidt to find $\ket{y}$ such that $\ket{x}, \ket{y}$ form an orthonormal basis. 
+Thus:
+$$H = \ket{x}\bra{x} + \ket{\psi}\bra{\psi} = \begin{bmatrix} 1 + \alpha^2 & \alpha\beta \\ \alpha\beta & 1- \alpha^2 \end{bmatrix}$$
+$$= I+ \alpha(\beta X + \alpha Z)$$
+Then, 
+$$exp(-iHt)\ket{\psi} = e^{-i(I + \alpha(\beta x + \alpha Z))t} = e^{-it}(\cos (\alpha t) \ket{\psi} - i \sin(\alpha t) (\beta X + \alpha Z)\ket{\psi})$$
+where it is not difficult to see that since $(\beta x + \alpha Z)^2 = I$, we can use result from exercise 4.2 ($e^{iAx} = \cos x I + i \sin x A$ for $A^2 = I, x \in \mathbb{R}$.) If we expand the state $(\beta X + \alpha Z)\ket{\psi}$ we see it is equal to $\ket{x}$ therefore we have:
+$$\cos (\alpha t) \ket{\psi} - i \sin (\alpha t)\ket{x}$$
+which means that at time $t= \pi/2\alpha$, we have a solution however this isn't useful since we define $\alpha$ as $\ket{\psi}= \alpha \ket{x} + \beta\ket{y}$ so we already have to know $\ket{x}.$, so instead we just start $\ket{\psi}$ as uniform superposition so $\alpha = \frac{1}{\sqrt{N}}$. Now, we can use quantum simulation technique to alternately simulate $H_1 = \ket{x}\bra{x} H_2 = \ket{\psi}\bra{\psi}$ for time increment $\Delta t$. We can see that for $\frac{1}{\sqrt{N}} \implies t=\frac{\pi \sqrt{N}}{2} = \Theta(\sqrt{N})$. Therefore for step size $\Delta t$ we have total number of steps $t/\Delta t = \Theta(\sqrt{N}/\Delta t) \implies$ cumulative error $O(\Delta t^2 \times \sqrt{N}/\Delta t)$ if we have error rate of $O(\Delta t^2)$. If we choose error rate $O(\Delta t^3)$, we need then to choose $\Delta t = \Theta(N^{-1/4})$ and we get total orange calls $O(N^{3/4})$.\\
+\begin{tcolorbox}\textbf{Exercise 6.8} Suppose simulation step is performed to accuracy $O(\Delta t^r)$. Show the number of oracle calls required to simulate $H$ to reasonable accuracy is $O(N^{(r/2(r-1))})$.\\
+We see if the simulation step is performed at accuracy $O(\Delta t^r)$ then the accumulated error is $O(\sqrt{N}/\Delta t \times \Delta t^r) = \Theta (\sqrt{N} \times \Delta t^{r-1}).$ Thus to have reasonable probability of success we need to choose $\Delta t = \Theta(N^{-1/(2(r-1))}) \implies$ oracle calls is $O(N^{1/(2(r-1)) + 1/2}) = O(N^{r/2(r-1)})$
+Therefore we can apply unitary for small time $\Delta t$,
+$$U(\Delta t) \equiv exp(-i \ket{\psi}\bra{\psi} \Delta t) exp(-i \ket{x}\bra{x}\Delta t)$$
+We can see that $\ket{x}\bra{x} = (I+Z)/2 = (I+ z \cdot \sigma)/2$ and that $\ket{\psi}\bra{\psi} = (I + \psi \cdot \sigma )/2$ wrt the $\ket{x},\ket{y}$ basis.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 6.9} Verify eq. 6.25.\\
+	Plug into formula in 6.25.
+\end{tcolorbox}
+From exercise 6.9 we see it is a composition of rotations on the Bloch sphere, following exercise 4.15 exactly.\\
+It is a rotation around axis $\vec{r} = \cos (\Delta t/2) \frac{\psi + z}{2} + \sin (\Delta t/2) \frac{\psi \times z}{2}$
+about angle $\cos (\theta/2) = \cos^2(\Delta t/2) - \sin^2 (\Delta t/2) \psi \cdot z = 1 - \frac{2}{N} \sin^2 (\Delta t/2)$
+Therefore if we choose $\Delta t = \pi$ (sine maxed) we get $\cos(\theta/2) = 1 - 2/N$ which for large $N$ corresponds to $\theta = \frac{4}{\sqrt{N}}$ which is equivalent to Grover's.
+
+\section{Quantum Counting:}
+We can use Grover's algorithm plus the quantum Fourier transform to estimate how many solutions a search problem has (necessary for Grover's).
+\begin{tcolorbox}\textbf{Exercise 6.13} Consider classical algorithm for counting problem which samples uniformly and independently $k$ times from search space, $X_1, \dots, X_k$ be the results of the oracle calls $X_j$ is indicator for $j$th item.  This algorithm returns estimate $S = N \times \sum_j X_j/k$ for hte number of solutions. Show the std. dev is $\Delta S = \sqrt{M(N-M)/k}$. Prove that to obtain a probability of at least $3/4$ of estimating $M$ correctly to accuracy $\sqrt{M}$ for all values $M$ we must have $k = \Omega(N)$.\\
+	We can see that $E(S) = \frac{N}{K} E(\sum_j X_j) = N E(X_j) = M$. Then, we see that this is a Bernoulli distribution ($\Delta^2 B = p(1-p)$) and therefore:
+	$$\Delta^2 S = \Delta^2 (\frac{N}{K} \sum_j {X_j}) = \frac{N^2}{K^2} \Delta^2 (\sum_j {X_j})$$
+	since $X_j$ is i.i.d, 
+	$$ = \frac{N^2}{K^2} (\Delta^2(X_i) + .....) = \frac{N^2}{K} (\Delta^2 (X_i))$$
+	Using Bernoulli variance, 
+	$$= \frac{N^2}{k} (\frac{M}{N})(1-\frac{M}{N}) = \frac{NM-M^2}{k}$$
+Then, we see that we can bound the probability that $S$ is within $\sqrt{M}$ using Chebyshev's inequality. First we see that:
+$$P(|\hat{S} - M| < 2 \Delta S) > \frac{3}{4} \iff P(|\hat{S} - M| \geq u \Delta S) \leq \frac{1}{u^2} = \frac{1}{4} \implies u = 2$$
+
+and thus we just need to choose $k$ such that two standard deviations is less than $\sqrt{M}$:
+$$ \sqrt{M} \geq 2 \Delta S \text{ is satisfied.}$$
+$$ \iff \sqrt{M} \geq 2 \sqrt{M(N-M)/k}$$
+$$\iff \sqrt{k} \geq 2\sqrt{(N-M)} \iff k \geq 4(N-M) \iff k = \Omega(N)$$
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 6.14} Prove that any classical counting algorithm with a probability at least $\frac{3}{4}$ for estimating $M$ correctly to accuracy $c\sqrt{M}$ for some constant $c$ and for all $M$ must make $\Omega(N)$ oracle calls.
+Simple algebra then shows from the previoous exercise that:
+$$k \geq 4/c^2 (N-M)$$
+\end{tcolorbox}
+Quantum counting is an application of phase estimation to estimate the eigenvalues of Grover operator $G$. Suppose $\ket{a},\ket{b}$ are the two eigenvectors of the Grover iteration in the space spanned by $\ket{\alpha}, \ket{\beta}$. Let $\theta$ be the angle of Grover iteration. We can express $G = \begin{bmatrix} \cos \theta & - \sin \theta \\ \sin \theta & \cos \theta \end{bmatrix}$ which has eigenvalues $e^{i\theta}, e^{i(2\pi - \theta)}$. Assume as described previously that the oracle as been augmented so that the search space is $2N$ (CCNOT, swap gate). We can then ensure $\sin^2(\theta/2) = M/2N$. We know the eigenvectors $\ket{a},\ket{b}$ are on the plane spanned by $\ket{\alpha}, \ket{\beta}$ since $G: U \to U$ so the eigenvectors of $U$ lie in $U$. Therefore we prepare $\sum_x \ket{x}$ (uniform superposition) which is some superposition of $\ket{a}, \ket{b}$. We then apply repeated Grover's identically to phase estimation. 
+It looks like of like this:
+\begin{enumerate}
+\item $$\ket{0}\ket{0} \to \frac{1}{\sqrt{t(n+1)}}\sum_x \sum_y \ket{x} \ket{y} = \frac{1}{\sqrt{t(n+1)}} \sum_x \sum_{u \in \{a,b\}} c_u \ket{x} \ket{u}$$
+\item $$\xrightarrow[G^{2^j}]{} \frac{1}{\sqrt{N}} \sum_x \sum_{u \in \{a,b\}} c_u e^{i \theta_u }\ket{x} \ket{u} = \frac{1}{\sqrt{N}}[\sum_j c_a e^{i\theta_1\dots \theta_t j}\ket{j}\ket{a} + \sum_k c_b e^{i(2\pi - \theta_1\dots \theta_t) k} \ket{k}\ket{b}]$$
+\item $$\xrightarrow[iQFT]{} \frac{1}{\sqrt{N}} [c_a\ket{\theta_1 \dots \theta_t} \ket{a} + c_b \ket{2\pi - \theta_1 \dots \theta_n}\ket{b}] $$\end{enumerate}
+	Some algebra shows we can bound error $|\Delta M|/2N M (\sqrt{2M N } + \frac{N}{2^{m+1}})2^{-m}$.
+	We can use this algorithm to find if there exists a solution or not $M=0$ or then use it before Grover's algorithm since we have to apply Grover's $\frac{\pi}{4}\sqrt{N/M}$ times.
+\subsection{Speeding up NP-Complete Problems}
+An example is the Hamiltonian cycle problem (determine if there is a a simple [each node once] cycle that visits every vertex of a graph). We can solve this by generating every single possible ordering of vertices, which is $n^n = 2^{n \log n}$. Any problem in $NP$ if it has size $n \implies w(n)$ bits and $2^{w(n)}$ cases we can search it. We use quantum counting and this oracle:
+$$O(\ket{v_1..v_n}) = (-1)^{H}\ket{v_1..v_n}$$
+where $H$ is whether or not the ordering is a Hamiltonian cycle. Applying counting/search we see that $O(2^{mn/2}) = O(2^{n ceil(\log n)/2})$ applications of the oracle. In sum: classical takes $O(p(n) 2^{n \log n})$ operations to determine whether or not. Quantumly we can do it in $O(p(n) 2^{n\log n /2})$.
+\subsection{Quantum Database Searching}Suppose we have a database with $N\equiv 2^n$ items of $l$ length, labelled $d_1, \dots, d_N$. Normally we search with CPU and database (which has $N$ blocks of $l$ bits). We set up an $ceil(\log N) = n-$bit index. The best way to do it classically is $O(n)$. Quite lame.\\
+Suppose then our quantum processor has four registers, an $n-$qubit index register initialized to $\ket{0}$, an $l$ qubit register initialized to $\ket{s}$ (the index of our target string), an $l$ qubit "data" register initialized to $\ket{0}$, and a 1 qubit register initialized to $\ket{-}$. You can implement the memory containing $N = 2^n$ cells of $l$ qubits each, each containing $\ket{d_x}$ or alternatively you can implement memory as classical memory with $N$ cells of $l$ bits containing $d_x$ but you can address it with index $x$ which can be in superposition. We access memory in this way: say the index register is in $\ket{x}$ and the data register is in $\ket{d}$ then we access and it becomes $\ket{d} \to \ket{d \oplus d_x}$.
+Essentially it looks like this:
+\begin{enumerate}
+	\item Initialize:
+		$$\ket{x}\ket{s}\ket{0}\ket{-}$$
+	\item LOAD
+		$$\ket{x}\ket{s}\ket{d_x}\ket{-}$$
+	\item Apply Oracle:
+		$$(-1)^{\delta_{d_x, s}}\ket{x}\ket{s}\ket{d_x}\ket{-}$$
+\end{enumerate}
+Then it is Grover's as usual. We have to do some quantum memory addressing which may be weird. Probably we end up using Grover's to speed up $NP-complete.$
+\section{Optimality of Search Algorithm}
+We have shown a quantum computer can search $N$ items consulting the search oracle only $O(\sqrt{N})$. We prove the following theorem:\\
+\textbf{Theorem: Optimality of Search Algorithm:} No quantum algorithm can perform serach using fewer than $\Omega(\sqrt{n})$ accesses to the search oracle.\\
+\begin{proof}
+	Suppose the algorithm starts in state $\ket{\psi}$ (uniform superposition). We prove the lower bound for the case where $x$ is the only solution i.e. $M=1$. We apply oracle $O_x = I - 2\ket{x}\bra{x}$ which flips the sign of $\ket{x}$ and doesn't change anything else. Suppose we apply the oracle $k$ times with unitary $U_1, \dots, U_k$ interleaved between (presumably the diffusion operator that completes Grover). Define:
+	$$\ket{\psi_k^x} = U_k O_x U_{k-1} O_x \dots \ket{\psi}$$
+	$$\ket{\psi_k} = U_k U_{k-1}\dots\ket{\psi}$$
+Let $\ket{\psi} = \ket{\psi_0}$. We attempt to bound quantity:
+$$D_k \equiv \sum_x ||\psi_k^x - \psi_k||^2$$
+Intuitively this is how much change the oracle has caused after $k$ steps and thus only if the quantity is sufficiently large can we identify $x$. We show it can grow no faster than $O(k^2)$ and that $D_k$ must be $\Omega(N)$ if it is possible to distinguish $N$ alternatives. \\
+We show $D_k \leq 4k^2$. This is trivial for $k=0$. Then, observe:
+$$D_{k+1} = \sum_x ||O_x \psi_k^x - \psi_k||^2$$
+$$= \sum || O_x(\psi_k^x - \psi_k) + (O_x -I)\psi_k||^2$$
+Using $||b+c||^2 \leq ||b||^2 + 2||b||||c|| + ||c||^2$ where $b \equiv O_x(\psi_k^x - \psi_k)$ and $c \equiv (O_x - I)\psi_k = -2\braket{x|\psi_k}\ket{x}$:
+$$D_{k+1} \leq \sum_x (||\psi_k^x - \psi_k||^2 + 4||\psi_k^x - \psi_k|| |\braket{x|\psi_k}| + 4|\braket{\psi_k|x}|^2)$$
+Using Cauchy-Schwarz on the center term we can bound:
+$$\sum_x|| \psi_k^x - \psi_k|| |\braket{x|\ket{\psi_k}}| \leq (\sum_x ||\psi_k^x - \psi_k||^2)^\frac12 (\sum_{x'} |\braket{\psi_k |x'}|^2)^\frac12$$
+and we also know that $\sum_x |\braket{x|\psi_k}|^2 = 1$ and also def. of $D_k$:
+$$ D_{k+1} \leq D_k + 4(\sum_x || \psi_k^x - \psi_k||^2)^\frac12 (\sum_{x'} |\braket{\psi_k|x'}|^2)^\frac12 + 4$$
+$$ = D_k + 4 \sqrt{D_k} + 4$$
+By inductive hypothesis, $D_k \leq 4k^2:$
+$$= D_{k+1} \leq 4k^2 + 8k + 4 = 4(k+1)^2$$
+We show the probability of success can only be high if $D_k = \Omega(N)$, suppose $|\braket{x|\psi_k^x}|^2 \geq 1/2$ for all $x$, equivalently that the probability that we observe $x$ is more than one half. Replacing $\ket{x}$ with $e^{i\theta}\ket{x}$. Honestly its a bunch of algebra.
+
+\begin{tcolorbox}\textbf{Exercise 6.15} Use the Cauchy-Schwarz inequality to show that for any normalized state vector $\ket{\psi}$ and a set of $N$ orthonormal basis vectors $\ket{x}$. \\
+	$$\sum_x ||\psi - x||^2 \geq 2N - 2 \sqrt{N}$$
+	Observe that:
+	\begin{align*}
+		\sum_x ||\psi - x||^2 &= \sum_x \braket{\psi-x|\psi-x}\\
+				      &= \sum_x \braket{\psi|\psi - x} - \braket{x |\psi -x} \text{(right linearity)}\\
+				      &= \sum_x \braket{\psi|\psi} - \braket{\psi | x} - \braket{x |\psi} + \braket{x|x}\\
+				      &= 2N - \sum_x (\braket{\psi|x} - \braket{x|\psi})\\
+				      & = 2N - \sum_x (\braket{\psi|x} - \braket{\psi|x}^*)\\
+				      &= 2N - 2\text{Re} (\sum_x \braket{\psi|x})\\
+				      &= 2N - 2 \text{Re} (\braket{\psi | \sum_x x}) \text{ (right linearity)}
+				      \intertext{Applying Cauchy-Schwarz,}
+				      &\geq 2N - 2\text{Re}\sqrt{\braket{\psi|\psi}\sum_x\braket{x|x}}\\ 
+				      &= 2N - 2\sqrt{N}
+	\end{align*}
+
+\end{tcolorbox}
+\end{proof}
+\begin{tcolorbox}\textbf{Exercise 6.16} Suppose we merely require the probability of an error being made is less than $\frac12$ when averaged uniformly over the possible values for $x$. Show that it still requires $O(\sqrt{N})$ oracle calls to solve search.\\
+	Suppose then that $\frac{1}{N} \sum_x |\braket{x|\psi_k^x}|^2 > \frac12$ which we can describe as
+	$$\frac{1}{N} \sum_x \braket{x|\psi^k_x}^2 > \frac12$$
+	due to $e^{i\pi}$ being a global phase factor.
+	Then, since $\sum_x \braket{x|\psi^k_x}^2 \leq \sum_x \braket{x|\psi^k_x}$ 
+	$$ \sum_x \braket{x|\psi_k^x} \geq \frac{N}{2} \iff -\sum_x \braket{x|\psi_k^x} \leq \frac{N}{2}$$
+	Then, using:
+	$$E_k \equiv \sum_x ||\psi_k^x - x||^2 = 2N - 2 \sum_x|\braket{x|\psi^x_k}| \leq 2N - N = N$$
+	Using that:
+	$$ D_k \geq (\sqrt{F_k} - \sqrt{E_k})^2 \geq (\sqrt{2N - 2\sqrt{N}} - \sqrt{E_k})^2$$
+	where the second inequality is from the previous exercise.
+	$$\geq (\sqrt{2N-2\sqrt{N}} - \sqrt{N})^2 \geq cN$$
+	for some $c \in \mathbb{R}$. About $0.15$.
+	Using $4k^2 \geq D_k \geq cN \implies k \geq \sqrt{cN/4}$ as desired.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 6.17} Suppose the search problem has $M$ solutions. Show that $O(\sqrt{N/M})$ oracle applications are required to find a solution.
+\end{tcolorbox}
+\section{Black Box Algorthim Limits}
+Solving the decision problem of whether or not there exists $x$ such that $f(x) = 1$ is equivalent to computing the Boolean function $F(X) = X_0 \cup \dots X_{N-1}$ where $X_k = f(k)$ and $X$ is the set $\{ X_0 \dots X_{N-1}\}$. $F(X)$ could be anything! There's a lot you can find out with this black box model where the oracle just does stuff and we count oracle calls. We use this method of polynomials that represent Boolean functions, functions of $X_k \in \{0,1\}$ (multilinear).\\\textbf{Definition:} A polynomial $p: \mathbb{R}^n \to \mathbb{R}$ represents $F$ if $p(X) = F(X)$ for all $X \in \{0,1\}^N$. We can always construct candidate:
+$$p(X) = \sum_{Y \in \{0,1\}^N} F(Y) \prod_{k=0}^{N-1} [1-(Y_k-X_k)^2]$$
+The minimum degree of a representation of $F$ is denoted as $deg(F)$. $deg(OR), deg(AND), deg(PARITY) = N$. Most is $O(N)$ actually. You can show $D(F) \leq 2 deg (F)^4$. If polynomial $|p(X) - F(X)| \leq \frac{1}{3}$ for all $X \in \{0,1\}^N$, $p$ approximate $F$.
+\begin{tcolorbox}\textbf{Exercise 6.18} Prove the minimum degree polynomial representing a Boolean function $F(X)$ is unique.\\
+Suppose we have polynomials $p, p^{'}$ that represent $F$ and $deg(p) = deg(p^{'})$.\\
+Then, consider $p - p^{'}$. We see that for all inputs where $F(X) = 0$, $p-p^{'} = 0$ and for all inputs where $F(X) = 1, p-p^{'} = 0$. Thus $p - p^{'} = 0 \iff p = p^{'}$.
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 6.19} Show $P(X) = 1 -(1-X_0)\dots(1-X_{N-1})$ represents OR.\\
+	We see that if any $X_i$ is true, the second half evalues to 0 and $P(X) = 1$. Then, we see if none $X_i$ are true, then $1-(1)(1)\dots(1) = 0$.\\
+	\end{tcolorbox}
+	\begin{tcolorbox}\textbf{Exercise 6.20} Show that $Q_0(OR) \geq N$ by constructing a polynomial which reprsents the OR function from the output of a q. circuit which computes OR with zero error.\\
+		We have shown in the previous exercise $P(X)$ represents $OR$ and thus $deg(OR) = N$.\\
+		Then, define state $\sum_k c_k \ket{k}$. We can use the fact that:
+		$$deg(c_k) \leq T \leq N$$.
+		where the last inequality is from the fact that we can always query each item in $N$.
+		If we want $c_k$ to have zero error, for outcome 0, we need the amplitude to be $1$ for $X=0$ and 0 elsewhere. Thus we have expression $c_0(X) = (1 - x_0)\dots(1-x_n)$. This has degree $N$.
+		Thus we have $$N \leq T \leq N$$
+	\end{tcolorbox}
+\end{document}

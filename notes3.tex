@@ -355,7 +355,7 @@ Runtime: $O(L^3)$.\\
 	\item Initialize $\ket{0}\ket{1}$.
 	\item Apply Hadamards to each qubit in first register: $\xrightarrow[H^{\otimes j}]{} \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t-1} \ket{j}\ket{1}$.
 	\item Apply $U_{x,n}, \xrightarrow[U_{x,n}]{} \ket{j}\ket{x^j \bmod N}$
-		$$ \approx \frac{1}{\sqrt{r2^t}} \sum^{r-1}_{s=0} \sum^{2^t-1}_{j=0}\ket{j}\ket{u_s}$$
+		$$ \approx \frac{1}{\sqrt{r2^t}} \sum^{r-1}_{s=0} \sum^{2^t-1}_{j=0}e^{2\pi i sj/r}\ket{j}\ket{u_s}$$
 	\item Apply iQFT, $\xrightarrow[iQFT]{} \frac{1}{\sqrt{r}} \sum_{s=0} \ket{\tilde{s/r}} \ket{u_s}$
 	\item Measure first register $\to \tilde{\frac{s}{r}}$
 	\item Use continued fractions $\to r$.
@@ -467,6 +467,8 @@ The natural evolution of the period finding problem which deals with one integer
 Functionally it is extremely similar to the previously analyzed period-finding and order finding algorithms. A huge chart will come soon making all the parallels much clearer. Two important steps we will show in the next two exercises.
 \begin{tcolorbox}\textbf{Exercise 5.22} Show that the eigenstate of $U$,
 	$$\ket{\hat{f}(l_1, l_2)} = \sum_{x_1} \sum_{x_2} e^{-2\pi i (l_1 x_1 + l_2 x_2)/r} \ket{f(x_1,x_2)} = \frac{1}{\sqrt{r}} \sum_{j} e^{-2 \pi i l_2 j/r} \ket{f(0,j)}$$ where $l_1/s - l_2$ is an integer multiple of $r$. 
+	\\ 
+	Period: $\ket{f(x_1,x_2)} = \ket{f(0, x_2 + sx_1)}$. Then make substitution $x_2 = j - sx_1$
 \end{tcolorbox}
 \begin{tcolorbox}\textbf{Exercise 5.23} Compute:
 	$$\frac{1}{r}\sum_{l_1 = 0} \sum_{l_2 = 0} e^{2\pi i (l_1 x_1 + l_2 x_2)/r} \ket{\hat{f}(l_1, l_2)}$$ using the equation in the previous exercise and show that the result is $f(x_1,x_2).$
@@ -508,7 +510,7 @@ Consider as an example subgroup $K$ with cosets $1+K, \dots, v + K$ where there 
 $$  =\frac{1}{|G|} \sum_{g \in G}\sum_{u} \sum_{h \in K} e^{2 \pi i g (u+h)/ |G|}\ket{g} \ket{\hat{f}(u+h)} = \frac{1}{|G|} \sum_{g \in G}\sum_{u} \sum_{h \in K} e^{2 \pi i g u/ |G|} e^{2 \pi i g h/ |G|}\ket{g} \ket{\hat{f}(u+h)}$$
 Since $f$ is constant on cosets, $f(u+h) = f(u)$
 $$= \frac{1}{|G|}\sum_{g \in G} \sum_{u} \sum_{h\in k} e^{2\pi i gh/|G| }e^{2\pi i gu/|G|} \ket{g}\ket{\hat{f}(u)}$$
-Using $\sum_{h\in K} e^{2\pi i gh/ |G|} = |K|$ and 0 if $h \not \in K^\perp$
+Using $\sum_{h\in K} e^{2\pi i gh/ |G|} = |K|$ and 0 if $h \not \in K^\perp, \equiv \frac{l \cdot h}{|G|} \in \mathbb{Z}$
 $$\approx \frac{|K|}{|G|} \sum_{g \in G} \sum_{l \in K^\perp} e^{2\pi igl/ |G|} \ket{g}\ket{\hat{f}(l)}$$
 If $l, |G|$ have common factors however then extracting $l$ immediately from the equation may not actually provide useful results. With no guarantee on $l, |G|$ being coprime or anything else like that, we must use the fundamental theorem of finite Abelian groups.\\
 \textbf{Fundamental Theorem of Finite Abelian Groups:}\\
@@ -534,8 +536,94 @@ Each $l_i h_i = 0$ allows us to determine orthogonal elements for each $K_{p_i}$
 \begin{tcolorbox}\textbf{Exercise 5.27} Explain how quantum algorithms can decompose finite Abelian group $G$ into cyclic groups of prime power order.\\
 	We can use Shor's to decompose $Z$ into $Z_{p_1} \times \dots \times Z_{p_i}$. Choose some arbitrary $g\in G$ such that, find the order of $g$ i.e $r$ such that $g^r  = e$ wher $e$ is the identity element of $G$. Thus we have found a cyclic group of size $r$. Rinse and repeat.
 \end{tcolorbox}
-Performing the inverse quantum Fourier transform on the first register we see that:
-$$\frac{|K|}{\sqrt{|G|}}\sum_{g \in G} e^{2\pi i gl/ |G|}\ket{g} = \ket{l_i}$$
-Thus we have:
-$$\frac{|K|}{\sqrt{|G|}} \sum_{l \in K^\perp} \ket{l} \ket{\hat{f}(l)}$$
+Performing the inverse quantum Fourier transform on the first register we can extract $\ket{l'_{i}}$ and measure $l'_i$. Multiply all the $l'_i$ together to get $l_i$. Then, $l_i \dot h = a_1 |G|$ by the orthogonality relation. Solve the system of equation for $h$. Repeat until you have $K$. We write this in the solution for exercise 5.28.
+\begin{tcolorbox}\textbf{Exercise 5.28} Write out an algorithm to solve the hidden subgroup problem with runtime and success probability for finite Abelian group.\\
+	\textbf{Inputs:} See above description of Hidden Subgroup Problem.\\
+	\textbf{Outputs:} A generating set for $K$.\\
+	\textbf{Runtime \& Error Probability:} $O(n^2)$ and with error probability $\epsilon$.
+	\begin{enumerate}
+		\item Initialize two registers, $\ket{0}\ket{0}$.
+		\item Perform QFT on first register, $$\xrightarrow[QFT]{} \frac{1}{\sqrt{|G|}} \sum_{g\in G}\ket{g} \ket{0}$$ $O(n^2)$ time.
+		\item Use controlled-$U$ operation on the second register.
+			$$\xrightarrow[U]{} \frac{1}{\sqrt{|G|}} \sum_{g \in G} \frac{1}{\sqrt{|G|}} \ket{g}\ket{f(g)}$$
+			$$\approx \frac{1}{|G|} \sum_{g\in G}\sum_{l \in G} e^{2\pi ilg/G}\ket{g}\ket{\hat{f}(l)}, \text{   (Fourier basis)}$$
+			$$ \approx \frac{|K|}{|G|} \sum_{g \in G}\sum_{l \in K^\perp} e^{2\pi i gl/ |G|} \ket{g}\ket{\hat{f}(l)} \text{  (orth. g,l)}$$
+		\item Decompose $G$ into cyclic subgroup using order-finding algorithm as described in exercise 5.27.
+			$$ = \frac{|K|}{|G|} \sum_{g \in G} \sum_{l \in K^\perp} \prod^{M}_{i=1} e^{2\pi i g_i l_i'/p_i} \ket{g} \ket{\hat{f}(l)} \text{   (fund. thm Finite Abel.)}$$
+		\item Perform the inverse quantum Fourier transform on the first register. Runtime: $O(\log^2|G|)$
+		\item Measure the first register, obtaining $l_1 = (l'_1, \dots, l'_m) \in K^\perp$. Perform $m = O(\log |G|)$ measurements to obtain $\{ l_1, \dots, l_m\}$.
+		\item Solve $ \frac{l \cdot g}{|G|} = 0 \bmod 1  \iff \sum_i \frac{l_i \cdot g_i}{p_i} = 0 \bmod 1$. 
+		\item The set of $g$ is the generators of the hidden subgroup.
+	 \end{enumerate}
+\end{tcolorbox}
+\begin{tcolorbox}\textbf{Exercise 5.29} Give quantum algorithms to solve Deutsch and Simon problems listed in Figure 5.5 using the framework of the hidden subgroup problem.\\
+	Using the algorithm in 5.28, the only addition we must make for Deutsch's algorithm is to initialize the states as $\ket{0}\ket{1}$.
+	\begin{enumerate}
+		\item Perform QFT on first register (equiv to Hadamard:)
+			$$ \xrightarrow[H]{} \frac{1}{\sqrt{2}} \sum_{g\in G}\ket{g}\ket{1} = \frac{1}{\sqrt{2}}(\ket0 + \ket1)(\ket{1})$$
+		\item Apply controlled-U. If $f(0) = f(1)$ ($f$ is constant),
+			$$\xrightarrow[U]{} \frac{1}{\sqrt{2}}(\ket0 + \ket1)\ket1 $$
+		If $f(0) \neq f(1),$ suppose $f(0) = 0$ and $f(1) = 1$.
+		$$ \xrightarrow[U]{} \frac{1}{\sqrt{2}}(\ket0 \ket0 + \ket1 \ket 1)$$
+		Expressing in Fourier basis, $\ket{0} = \ket{+},\ket{1} = \ket{-}$.
+		For constant case:
+		$$ \approx \frac12 (\ket{0}+\ket1)(\ket0 - \ket1)$$
+		For balanced case:
+		$$\approx \frac12(\ket{00} + \ket{01} + \ket{10} + \ket{11}) = \frac12(\ket{0}-\ket{1})(\ket{0}-\ket{1})$$
+		\item Perform inverse quantum Fourier transform on the first register.\\ 
+			For constant case:
+			$$\xrightarrow[H]{}  \ket{0}\ket{-}$$
+			For balanced case:
+			$$\xrightarrow[H]{} \ket{1}\ket{-}$$
+		\item Measure the first register.\\
+			If $f$ is constant, then $l = 0 \implies K = \{0\}$. \\If $f$ is balanced, then $l=1 \implies K = \{0,1\}$.
+	\end{enumerate}
+\end{tcolorbox}
+\section{Post-script:}
+This is not the standard presentation of period-finding and consequently Hidden Subgroup Problem. The main Fourier-basis re-expression doesn't really work for when $r$ is not a factor of $N$, it becomes incomplete. We redo period-finding and then redo HSP. See Ch.6 Preskill's notes.\\
+\textbf{Period-finding (Standard Approach):}\\
+	\textbf{Input:} $f$ with period $r$ for some unknown $0 < r < 2^L$ where $x,r \in \{ 0,1,2, \dots\}$. A black box $U$ which performs $U\ket{x}\ket{y} \to \ket{x} \ket{y \oplus f(x)}$. Two registers initialized to zero, $t = O(L + \log(1/e))$ bits for the first one.\\
+	\textbf{Output:} Smallest $r>0$ such that $f(x+r) = f(x)$.\\
+	\textbf{Runtime:} $O(U) + O(L^2)$ with probability $O(1)$.
+\begin{enumerate}
+	\item Initialize $\ket{0}\ket{0}$.
+	\item Put into even superposition via QFT/Hadamard:
+		$$ \xrightarrow[QFT]{} \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1}\ket{x}\ket{0}$$
+	\item Apply $U$: 
+		$$\xrightarrow[U]{} \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1} \ket{x}\ket{f(x)}$$
+\item We then measure the second register. We obtain some $x$, $f(x)$ which then by periodicity is $f(x_0 + kr) = f(x_0) 0 \leq x_0 < r$. Also, define $A$ such that $A - 1 < \frac{N}{r} < A+1$.
+		$$\xrightarrow[M]{} \frac{1}{\sqrt{2^t}}\sum_{k = 0}^{A-1}\ket{x_0 + kr} \ket{f(x_0 + kr)} = \frac{1}{\sqrt{2^t}} \sum_{k=0}^{A_1} \ket{x_0 + kr}\ket{f(x_0)}$$
+	Discarding the second register,
+	$$ = \frac{1}{\sqrt{A}}\sum_{k=0}^{A-1}\ket{x_0 + kr}$$
+	\item Applying quantum Fourier transform to the first register yields:
+		$$\frac{1}{\sqrt{AN}} \sum_{k=0}^{A-1}\sum_{y=0}^{N-1} e^{2\pi i(x_0 + kr)y/N} \ket{y}$$
+		$$=\frac{1}{\sqrt{AN}} \sum_{y=0}^{N-1} e^{2\pi i x_0 y/ N}\sum_{k=0}^{A-1} e^{2\pi i kr y/ N} \ket{y}$$
+		We use the fact that $\sum_{k=0}^{A-1} e^{2\pi i kry/N} = N/r = A$ (equal to $\sqrt{N/r} =\sqrt{A}$ up to normalization) when $y= sN/r, s\in \mathbb{Z}$ and zero otherwise. Therefore this is:
+		$$=\frac{\sqrt{A}}{\sqrt{N}} \sum_{y \equiv 0 \bmod N/r} e^{2\pi i x_0 y/N}\ket{y}$$
+			You can interpret this as probability being highest where $y\equiv 0 \bmod N/r$ and roughly 0 elsewhere.
+		\item Measure to get $y$ with high probability. Then, $y= sN/r \implies y/N \approx s/r$. Use continued fractions to get $r$ from $s/r$.
+\end{enumerate}
+\section*{Hidden Subgroup Algorithm}
+\textbf{Input:}$f$ be a function from a finitely generated group $G$ to a finite set $X$ such that $f$ is constant on cosets of subgroup $K$ and distinct on each coset. A blackbox for $U\ket{g}\ket{h} = \ket{g}\ket{h \oplus f(g)}$ ($\oplus$ an appropriate bin. op.)\\
+\textbf{Output:} A generating set for $K$.\\
+\textbf{Runtime:} $O(L^2) + O(U)$.
+\begin{enumerate}
+	\item Begin in state $\ket{0}\ket{0}$ 
+	\item Perform QFT on first register and $U$ on second register:
+		$$\xrightarrow[QFT,U]{} \frac{1}{\sqrt{|G|}}\sum_{g \in G} \ket{g} \ket{f(g)}$$
+	\item Measure (and discard second register)
+		$$\xrightarrow[M]{} \frac{1}{\sqrt{|K|}} \sum_{h \in K} \ket{h + x_0} \ket{f(h+x_0)}$$
+		$$\xrightarrow[]{} \frac{1}{\sqrt{|K|}}\sum_{h \in K} \ket{h + x_0}$$
+		Note: Since $f$ is constant on cosets, $\ket{f(h+x_0)} = \ket{f(x_0)}$
+	\item By Fund. Theorem of finite Abelian groups, $G\cong Z_{N_1} \times \dots \times Z_{N_m}$ and thus we treat $g,h$ as vectors in such a set. Calculate this decomposition using order-finding algorithm. Then, perform QFT on first state:
+		$$\xrightarrow[QFT]{} \frac{1}{\sqrt{|G||K|}} \sum_{h \in K} \sum_{g \in G} e^{2\pi i (h+x_0)g/|G|} \ket{g} $$
+		$$=\frac{1}{\sqrt{|G||K|}} \sum_{g \in G} e^{2\pi i x_0 g/ |G|}\sum_{h \in K} e^{2\pi i h g/ |G|} \ket{g}$$
+		By fund.thm:
+		$$=\frac{1}{\sqrt{|G||K|}} \sum_{g\in G}e^{2\pi i x_0 g/|G|} \sum_{h \in K} e^{2\pi i \sum_j h_j g_j/ N_j} \ket{g_1\dots g_m}$$
+			where $N_i = p_i^k$ for some prime $p_i$, integer $k$.
+			If $h\cdot g/|G| \equiv \sum_j h_j \cdot g_j / N_j = 0 \bmod {1}$, then $ e^{2\pi i \sum_j h_j g_j/ N_j} = 1$, else it is nearly zero. Thus:
+			%$$\approx \frac{\sqrt{|K|}}{\sqrt{|G|}} \sum_{g \in G} e^{2\pi i x_0 g/|G|} \sum_{h \in K^\perp} e^{2\pi i \sum_j h_jg_j/N_j} \ket{g_1 \dots g_m}$$
+			$$\approx \frac{1}{\sqrt{|K^\perp|}} \sum_{g \in K^\perp} e^{2\pi i x_0 g/|G|} \ket{g_1 \dots g_m}$$
+	\item Measure the second register at most $m$ times, obtaining $m$ instances of $g= (g_1, \dots, g_m)$ such that $\frac{g_1 \cdot h_1}{N_1} + \dots + \frac{g_m \cdot h_m}{N_m}  = 0 \bmod {1} \iff g_1 \cdot h_1 + g_2 \cdot h_2 + \dots = 0 \bmod LCM(N_j) $ for all $h \in H$. We need $m$ samples since at this point it is really solving a system of lin. eq., if we do not have enough samples for $m$ dimensional problem then we will have free variables. Thus we can determine what the generator of $K$ is. 
+\end{enumerate}
 \end{document}
